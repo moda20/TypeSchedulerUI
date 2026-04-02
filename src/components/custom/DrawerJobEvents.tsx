@@ -1,12 +1,12 @@
 import SheetActionDialog from "@/components/sheet-action-dialog"
 import type { jobsTableData } from "@/features/jobsTable/interfaces"
-import type { ReactNode } from "react"
+import { ReactNode, useEffect } from "react"
 import { useCallback } from "react"
+import { useMemo, useRef } from "react"
 import { useState } from "react"
 import { JobEventTypes } from "@/models/jobs"
 import { useJobEvents } from "@/hooks/useJobEvents"
 import { EventItem } from "@/components/custom/general/EventItem"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { ManagedSimpleDropdown } from "@/components/custom/ManagedSimpleDropdown"
 import { Spinner } from "@/components/ui/spinner"
@@ -14,6 +14,9 @@ import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip
 import { Switch } from "@/components/ui/switch"
 import { cn } from "@/lib/utils"
 import { ListCheck } from "lucide-react"
+import { useVirtualizer } from "@tanstack/react-virtual"
+import LoadingOverlay from "@/components/custom/LoadingOverlay"
+import { debounce } from "@/utils/generalUtils"
 
 export interface DrawerNewComponentProps {
   JobDetails: jobsTableData
@@ -36,6 +39,7 @@ export default function DrawerJobEvents({
     JobEventTypes.INFO,
   ])
   const [unreadOnly, setUnreadOnly] = useState(false)
+  const parentRef = useRef<HTMLDivElement>(null)
 
   const { events, latestEvents, loading, setEventsToHandled } = useJobEvents({
     jobId: JobDetails.id,
@@ -63,6 +67,30 @@ export default function DrawerJobEvents({
     [filteredEventTypes],
   )
 
+  const allEvents = useMemo(() => {
+    return [...latestEvents, ...events]
+  }, [events, latestEvents, latestEvents.length, events.length])
+
+  const rowVirtualizer = useVirtualizer({
+    count: allEvents.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80,
+    overscan: 40,
+    gap: 8,
+    lanes: 1,
+    enabled: allEvents.length > 0,
+    initialOffset: 0,
+    getItemKey: index => String(allEvents[index].id),
+  })
+
+  const refreshVirtualizer = useCallback(() => {
+    setTimeout(() => {
+      // TODO find another solution for this timeout issue :
+      // the allEvent array although is always updated, doesn't trigger the virtualizer getVirtualItems() function to return filled item array
+      rowVirtualizer.measure()
+    }, 200)
+  }, [rowVirtualizer])
+
   return (
     <SheetActionDialog
       side={"right"}
@@ -71,6 +99,8 @@ export default function DrawerJobEvents({
       trigger={trigger}
       modal={true}
       contentClassName="w-[600px] sm:w-[800px] sm:max-w-[800px]"
+      onOpenChange={refreshVirtualizer}
+      innerContainerClassName={"gap-2"}
     >
       <div className="mt-2 flex gap-2 w-full">
         <ManagedSimpleDropdown
@@ -106,36 +136,45 @@ export default function DrawerJobEvents({
           </ButtonWithTooltip>
         </div>
       </div>
-      <ScrollArea>
-        <div className={"flex flex-col gap-2 py-4"}>
-          {latestEvents.length > 0 &&
-            latestEvents.map(ev => (
-              <EventItem
-                key={ev.id}
-                timestamp={ev.created_at}
-                message={ev.event_message}
-                type={ev.type}
-                onHandle={setEventsToRead(ev.id)}
-                handled={ev.handled}
-                handleTime={ev.handled_on}
-                job={JobDetails}
-              />
-            ))}
-          {latestEvents.length > 0 && <Separator />}
-          {events.map(ev => (
-            <EventItem
-              key={ev.id}
-              timestamp={ev.created_at}
-              message={ev.event_message}
-              type={ev.type}
-              onHandle={setEventsToRead(ev.id)}
-              handled={ev.handled}
-              handleTime={ev.handled_on}
-              job={JobDetails}
-            />
-          ))}
+      <LoadingOverlay isLoading={loading}>
+        <div
+          ref={parentRef}
+          className="overflow-auto h-[calc(100vh-10rem)] w-full"
+        >
+          <div
+            className="relative w-full py-4"
+            style={{
+              height: `${rowVirtualizer.getTotalSize()}px`,
+            }}
+            key={allEvents.length}
+          >
+            {rowVirtualizer.getVirtualItems().map(virtualRow => {
+              const ev = allEvents[virtualRow.index]
+              return (
+                <div
+                  className="absolute w-full"
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                  key={virtualRow.key}
+                  data-index={virtualRow.index}
+                  ref={rowVirtualizer.measureElement}
+                >
+                  <EventItem
+                    timestamp={ev.created_at}
+                    message={ev.event_message}
+                    type={ev.type}
+                    onHandle={setEventsToRead(ev.id)}
+                    handled={ev.handled}
+                    handleTime={ev.handled_on}
+                    job={JobDetails}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </div>
-      </ScrollArea>
+      </LoadingOverlay>
     </SheetActionDialog>
   )
 }

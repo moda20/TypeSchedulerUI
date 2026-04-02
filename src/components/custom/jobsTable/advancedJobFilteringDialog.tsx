@@ -57,6 +57,7 @@ import jobsService from "@/services/JobsService"
 import ScrollableList from "@/components/custom/general/ScrollableList"
 import JobItem from "@/components/custom/general/JobItem"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
+import { Separator } from "@/components/ui/separator"
 
 export interface AdvancedJobFilteringDialogProps {
   children: React.ReactNode
@@ -214,9 +215,9 @@ export const AdvancedJobFilteringDialog = forwardRef<
               value2: values.latestRun.to,
             }
           : undefined,
-        name: values.name ?? undefined,
-        cronSetting: values.cronSetting ?? undefined,
-        consumer: values.consumer ?? undefined,
+        name: values.name?.value ? values.name : undefined,
+        cronSetting: values.cronSetting?.value ? values.cronSetting : undefined,
+        consumer: values.consumer?.value ? values.consumer : undefined,
         isRunning: values.isRunning ?? undefined,
         averageTime: values.averageTime ?? undefined,
       }
@@ -298,6 +299,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Name</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Job name"
                             {...field}
                             value={field.value ?? ""}
@@ -317,6 +319,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Cron Setting</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Cron setting"
                             {...field}
                             value={field.value ?? ""}
@@ -336,6 +339,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Consumer</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Consumer"
                             {...field}
                             value={field.value ?? ""}
@@ -449,6 +453,10 @@ export const AdvancedJobFilteringDialog = forwardRef<
                 </form>
               </Form>
             </div>
+            <Separator
+              orientation="vertical"
+              className="mr-2 w-1 rounded self-stretch"
+            />
             <div className="flex flex-col gap-2 w-6/12">
               <h4>Manual queue execution</h4>
               {previewJobList.length > 0 && (

@@ -139,17 +139,17 @@ export function DatePickerWithPresets(props: DatePickerWithPresetsProps) {
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="z-50 flex w-auto flex-col space-y-2 p-2 bg-background text-foreground pointer-events-auto"
+        className="z-50 flex w-auto flex-col space-y-2 p-2 bg-background text-foreground pointer-events-auto border-2"
       >
         <Select onValueChange={setPresetDates} value={parseDateToPreset()}>
-          <SelectTrigger>
+          <SelectTrigger className="border-2 border-border">
             <SelectValue
               className="bg-background text-foreground"
               placeholder="Select"
             />
           </SelectTrigger>
           <SelectContent
-            className="bg-background text-foreground"
+            className="bg-background text-foreground border-border border-2"
             position="popper"
           >
             {selectRangeList.map((e, i) => {
@@ -161,7 +161,7 @@ export function DatePickerWithPresets(props: DatePickerWithPresetsProps) {
             })}
           </SelectContent>
         </Select>
-        <div className="rounded-md border">
+        <div className="rounded-md border-2 border-border">
           <Calendar
             initialFocus
             mode="range"

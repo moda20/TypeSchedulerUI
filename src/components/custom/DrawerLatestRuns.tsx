@@ -41,7 +41,7 @@ export default function DrawerLatestRuns({
   const [selectedLogItem, setSelectedLogItem] = useState<any | undefined>(
     undefined,
   )
-  const [itemsTotal, setItemstotal] = useState(0)
+  const [itemsTotal, setItemsTotal] = useState(0)
   const [inputSchema, setInputSchema] = useState<JobRunsQuerySchema>({
     jobId: JobDetails.id,
     limit: 10,
@@ -67,7 +67,7 @@ export default function DrawerLatestRuns({
 
   const resetDrawer = useCallback(() => {
     setLogItems([])
-    setItemstotal(0)
+    setItemsTotal(0)
     setInputSchema({
       ...inputSchema,
       offset: 0,
@@ -103,7 +103,10 @@ export default function DrawerLatestRuns({
       })
       .catch(err => {
         console.error(err)
-        return []
+        return {
+          data: [],
+          total: 0,
+        }
       })
       .finally(() => setLoading(false))
   }, [inputSchema, loading])
@@ -132,7 +135,7 @@ export default function DrawerLatestRuns({
       title={`Job runs for ${JobDetails.name}`}
       description={"List of previous job run logs"}
       contentClassName={cn(
-        "transition-all duration-200",
+        "transition-all duration-100",
         showLogs ? "w-[600px] sm:w-[900px] sm:max-w-[80vw]" : "",
       )}
       trigger={trigger}
@@ -140,7 +143,7 @@ export default function DrawerLatestRuns({
         if (v) {
           getLatestRuns().then(data => {
             setLogItems(data.data)
-            setItemstotal(data.total)
+            setItemsTotal(data.total)
           })
         } else {
           resetDrawer()
@@ -164,7 +167,7 @@ export default function DrawerLatestRuns({
             itemClassName={(item: any) => {
               return cn(
                 "focus:rounded-lg outline-none focus:ring-2  focus:ring-opacity-50 focus-visible:ring-2 focus-visible:ring-offset-0 focus-visible:ring-opacity-50 hover:ring-2 hover:ring-opacity-50 hover:rounded-lg focus:ring-blue-500 focus-visible:ring-blue-500 hover:ring-blue-500",
-                item.error ? "ring-destructive ring-2 rounded-xl" : "",
+                item.error ? "border-destructive border-2 rounded-xl" : "",
               )
             }}
             renderItem={(logParent: any) => {
@@ -172,7 +175,7 @@ export default function DrawerLatestRuns({
                 logParent.isUnfinished ? (
                   <LoaderIcon className="text-foreground animate-spin duration-2000" />
                 ) : logParent.error ? (
-                  <FileWarning className="h-8 w-8 text-foreground bg-destructive p-1 rounded-lg" />
+                  <FileWarning className="h-7 w-7 text-foreground bg-destructive p-1 rounded-lg" />
                 ) : (
                   <CheckCircle className="h-8 w-8 text-success p-1 rounded-lg border-2 border-border" />
                 )

@@ -268,9 +268,9 @@ export default function JobsPage() {
 
   return (
     <div className="h-full">
-      <div ref={ref} className="h-1"></div>
+      <div ref={ref} className="h-[1px]"></div>
       <div
-        className={`table-header flex items-center py-4 justify-between sticky  z-10 transition-all duration-100 ${
+        className={`table-header flex items-center pb-4 pt-0 justify-between sticky  z-10 transition-all duration-100 ${
           !inView ? "bg-background/95 backdrop-blur-sm shadow-md top-16" : ""
         }`}
       >
@@ -407,6 +407,7 @@ export default function JobsPage() {
           filters={filterMemo}
           events={tableEventsMemoized}
           rowSelection={selectedRowIds}
+          size="h-[calc(100vh-150px)]"
         />
       </Spinner>
     </div>

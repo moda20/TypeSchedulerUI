@@ -7,11 +7,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
-import type { ReactNode } from "react"
+import { isValidElement, ReactNode } from "react"
 import { useEffect, useRef } from "react"
 import type React from "react"
 import { cn } from "@/lib/utils"
 import useDialogueManager from "@/hooks/useDialogManager"
+import { isReactFragment } from "@/utils/generalUtils"
 
 export interface SheetActionDialogProps
   extends React.ComponentProps<typeof Sheet> {
@@ -44,6 +45,14 @@ export default function SheetActionDialog(
       ref.current?.focus()
     }, 100)
   }, [])
+  const isTitleElement =
+    isValidElement(props.title) &&
+    !isReactFragment(props.title) &&
+    typeof props.title !== "string"
+  const isDescriptionElement =
+    isValidElement(props.description) &&
+    !isReactFragment(props.description) &&
+    typeof props.description !== "string"
   return (
     <Sheet
       key={props.side}
@@ -68,8 +77,10 @@ export default function SheetActionDialog(
         )}
       >
         <SheetHeader>
-          <SheetTitle>{props.title}</SheetTitle>
-          <SheetDescription>{props.description}</SheetDescription>
+          <SheetTitle asChild={isTitleElement}>{props.title}</SheetTitle>
+          <SheetDescription asChild={isDescriptionElement}>
+            {props.description}
+          </SheetDescription>
         </SheetHeader>
         <div
           className={cn(

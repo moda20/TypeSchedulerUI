@@ -81,13 +81,13 @@ export const getTableColumns = (
     cell: ({ row, table }) => (
       <Checkbox
         checked={row.getIsSelected() || row.getIsSomeSelected()}
-        //onCheckedChange={value => row.toggleSelected(!!value)}
         onClick={props?.selectFunction?.(table, row)}
         aria-label={`Select row ${row.original.name}`}
       />
     ),
     enableSorting: false,
     enableHiding: false,
+    size: 60,
   },
   {
     accessorKey: "id",
@@ -95,6 +95,7 @@ export const getTableColumns = (
       <HeaderSortButton column={column} columnName="Id" className="" />
     ),
     cell: ({ row }) => <div className="px-2">{row.original.id}</div>,
+    size: 60,
   },
   {
     accessorKey: "name",
@@ -109,13 +110,14 @@ export const getTableColumns = (
           </div>
         )}
         {
-          <div className="flex gap-2 text-[13px] items-center font-light">
+          <div className="flex gap-2 text-[13px] items-center font-light truncate">
             <FileArchive size="14" className="" />
             {row.original.consumer}
           </div>
         }
       </div>
     ),
+    minSize: 350,
   },
   {
     accessorKey: "cronSetting",
@@ -128,6 +130,7 @@ export const getTableColumns = (
     header: ({ column }) => (
       <HeaderSortButton column={column} columnName="Cron setting" />
     ),
+    minSize: 150,
   },
   {
     accessorKey: "scheduled",
@@ -143,6 +146,7 @@ export const getTableColumns = (
     header: ({ column }) => (
       <HeaderSortButton column={column} columnName="Scheduled" />
     ),
+    minSize: 100,
   },
   {
     accessorKey: "isCurrentlyRunning",
@@ -160,6 +164,7 @@ export const getTableColumns = (
     header: ({ column }) => (
       <HeaderSortButton column={column} columnName="Running ?" />
     ),
+    minSize: 100,
   },
   {
     accessorKey: "averageTime",
@@ -169,6 +174,7 @@ export const getTableColumns = (
     header: ({ column }) => (
       <HeaderSortButton column={column} columnName="Average time" />
     ),
+    minSize: 100,
   },
   {
     accessorKey: "latestRun",
@@ -200,16 +206,22 @@ export const getTableColumns = (
         </div>
       )
     },
+    minSize: 150,
   },
   {
     accessorKey: "actions",
-    header: "Actions",
-    cell: ({ row }) => (
-      <ActionDropdown
-        row={row.original}
-        defaultLogPeriod={defaultLogPeriod}
-        columnsProps={props}
-      />
+    header: () => (
+      <div className="flex w-full items-center justify-center">Action</div>
     ),
+    cell: ({ row }) => (
+      <div className="flex w-full items-center justify-center">
+        <ActionDropdown
+          row={row.original}
+          defaultLogPeriod={defaultLogPeriod}
+          columnsProps={props}
+        />
+      </div>
+    ),
+    minSize: 60,
   },
 ]

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/sidebar"
 import type { RouteObject } from "@/app/reducers/uiReducer"
 import UserDropdown from "@/components/custom/system/UserDropdown"
+import ServerStatus from "@/components/custom/system/ServerStatus"
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   data: {
@@ -59,6 +60,7 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarRail className={"after:!border-border"} />
       <SidebarFooter>
+        <ServerStatus />
         <UserDropdown />
       </SidebarFooter>
     </Sidebar>

@@ -1,17 +1,11 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DatabaseBackup,
-  FolderKanban,
-  LucideDatabase,
-  LucideDatabaseZap,
-} from "lucide-react"
+import { DatabaseBackup, LucideDatabase, LucideDatabaseZap } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import systemService from "@/services/SystemService"
 import { Button } from "@/components/ui/button"

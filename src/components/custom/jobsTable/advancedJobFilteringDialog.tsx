@@ -19,20 +19,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon, Download, LucideScanEye, Search } from "lucide-react"
-import { format } from "date-fns"
+import { Download, LucideScanEye, Search } from "lucide-react"
 import { DatePickerWithPresets } from "@/components/ui/date-picker-presets"
 import type { InputType } from "@/components/custom/general/MultiTypedInput"
-import { defaultMultiTypeNullValue } from "@/components/custom/general/MultiTypedInput"
 import { FlexibleInput } from "@/components/custom/general/MultiTypedInput"
 import {
   forwardRef,
@@ -41,14 +31,6 @@ import {
   useImperativeHandle,
   useState,
 } from "react"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { proxyProtocolOptions } from "@/models/proxies"
 import ManagedSelect from "@/components/custom/ManagedSelect"
 import type { advancedJobExecutionFormSchemaType } from "@/components/custom/jobsTable/AdvancedJobExecutionForm"
 import { AdvancedJobExecutionForm } from "@/components/custom/jobsTable/AdvancedJobExecutionForm"
@@ -57,6 +39,7 @@ import jobsService from "@/services/JobsService"
 import ScrollableList from "@/components/custom/general/ScrollableList"
 import JobItem from "@/components/custom/general/JobItem"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
+import { Separator } from "@/components/ui/separator"
 
 export interface AdvancedJobFilteringDialogProps {
   children: React.ReactNode
@@ -147,7 +130,6 @@ export const AdvancedJobFilteringDialog = forwardRef<
 
     useEffect(() => {
       if (isDialogOpen && inputJobIds?.length) {
-        console.log("inputJobIds", inputJobIds)
         jobsService
           .getAllJobs(null, undefined, undefined, undefined, inputJobIds)
           .then(d => {
@@ -214,9 +196,9 @@ export const AdvancedJobFilteringDialog = forwardRef<
               value2: values.latestRun.to,
             }
           : undefined,
-        name: values.name ?? undefined,
-        cronSetting: values.cronSetting ?? undefined,
-        consumer: values.consumer ?? undefined,
+        name: values.name?.value ? values.name : undefined,
+        cronSetting: values.cronSetting?.value ? values.cronSetting : undefined,
+        consumer: values.consumer?.value ? values.consumer : undefined,
         isRunning: values.isRunning ?? undefined,
         averageTime: values.averageTime ?? undefined,
       }
@@ -298,6 +280,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Name</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Job name"
                             {...field}
                             value={field.value ?? ""}
@@ -317,6 +300,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Cron Setting</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Cron setting"
                             {...field}
                             value={field.value ?? ""}
@@ -336,6 +320,7 @@ export const AdvancedJobFilteringDialog = forwardRef<
                         <FormLabel>Consumer</FormLabel>
                         <FormControl>
                           <FlexibleInput
+                            type="regex"
                             placeholder="Consumer"
                             {...field}
                             value={field.value ?? ""}
@@ -449,6 +434,10 @@ export const AdvancedJobFilteringDialog = forwardRef<
                 </form>
               </Form>
             </div>
+            <Separator
+              orientation="vertical"
+              className="mr-2 w-1 rounded self-stretch"
+            />
             <div className="flex flex-col gap-2 w-6/12">
               <h4>Manual queue execution</h4>
               {previewJobList.length > 0 && (

@@ -157,3 +157,10 @@ export function useQuery() {
 
   return React.useMemo(() => new URLSearchParams(search), [search])
 }
+
+export function isReactFragment(variableToInspect) {
+  if (variableToInspect.type) {
+    return variableToInspect.type === React.Fragment
+  }
+  return variableToInspect === React.Fragment
+}

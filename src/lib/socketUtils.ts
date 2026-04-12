@@ -127,6 +127,9 @@ export function useSocketLogs({
   const [latestLogs, setLatestLogs] = useState<
     { id: string; logs: any; [key: string]: any }[]
   >([])
+
+  const [logsLoading, setLogsLoading] = useState(false)
+
   SocketManager.whenCreated(() => setWsReady(true))
   const ListenerFn = useCallback(
     (handler: (action: string, data: any) => void) =>
@@ -172,6 +175,7 @@ export function useSocketLogs({
   }, [wsReady, handler])
 
   const getLogs = useCallback(() => {
+    setLogsLoading(true)
     return getLokiLogs(
       logQuery!,
       initialLogsFilter?.from,
@@ -180,24 +184,28 @@ export function useSocketLogs({
         setEndToMidnight,
         mergeOutputStreams,
       },
-    ).then(rawLogs => {
-      if (mergeOutputStreams) {
-        const parsedLogs = rawLogs.map((logArray: any[]) => {
-          return {
-            id: logArray[2]?.eventName,
-            logs: {
-              ...logArray[2],
-            },
-            fullMessage: logArray[1],
-          }
-        })
-        setLogs(parsedLogs)
+    )
+      .then(rawLogs => {
+        if (mergeOutputStreams) {
+          const parsedLogs = rawLogs.map((logArray: any[]) => {
+            return {
+              id: logArray[2]?.eventName,
+              logs: {
+                ...logArray[2],
+              },
+              fullMessage: logArray[1],
+            }
+          })
+          setLogs(parsedLogs)
+          return
+        } else {
+          setLogs(rawLogs.map(format))
+        }
         return
-      } else {
-        setLogs(rawLogs.map(format))
-      }
-      return
-    })
+      })
+      .finally(() => {
+        setLogsLoading(false)
+      })
   }, [initialLogsFilter, logInterval])
 
   useInterval(
@@ -227,7 +235,13 @@ export function useSocketLogs({
     }
   }, [initialLogsFilter, logInterval])
 
-  return { subscribeToEvents, unsubscribeFromEvents, logs, latestLogs }
+  return {
+    subscribeToEvents,
+    unsubscribeFromEvents,
+    logs,
+    logsLoading,
+    latestLogs,
+  }
 }
 
 export const socketInstance = SocketManager.instance

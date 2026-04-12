@@ -57,6 +57,9 @@ const systemService = {
       },
     })
   },
+  getVersion(): Promise<any> {
+    return axios.get("/status/version")
+  },
 }
 
 export default systemService

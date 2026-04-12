@@ -73,7 +73,7 @@ export default function ManagedSelect(props: ManagedSelectProps) {
         <SelectValue placeholder={props.inputPlaceholder} />
       </SelectTrigger>
       <SelectContent
-        className="bg-background text-foreground"
+        className="bg-background text-foreground border-2 border-border"
         onEscapeKeyDown={v => {
           v.preventDefault()
           setDialogState(false)

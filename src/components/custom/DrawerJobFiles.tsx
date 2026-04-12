@@ -16,7 +16,9 @@ import moment from "moment"
 import { humanFileSize } from "@/utils/numberUtils"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { ButtonGroup } from "@/components/ui/buttonGroup"
-import ConfirmationDialogAction from "@/components/confirmationDialogAction"
+import ConfirmationDialogAction, {
+  ConfirmationDialogActionType,
+} from "@/components/confirmationDialogAction"
 import { toast } from "@/hooks/use-toast"
 import type { CacheFile, jobLog, OutputFile } from "@/models/cacheFiles"
 import DrawerFilePreview from "@/components/custom/DrawerFilePreview"
@@ -128,6 +130,16 @@ export default function DrawerJobFiles({
       }
     },
     [JobDetails, cacheFilesListRef.current],
+  )
+
+  const handleConfirmAction = useCallback(
+    (inputFunction: any) => {
+      return (action: ConfirmationDialogActionType) => {
+        if (action === ConfirmationDialogActionType.CANCEL) return
+        return inputFunction(action)
+      }
+    },
+    [deleteFile, downloadFile],
   )
 
   useEffect(() => {
@@ -297,7 +309,9 @@ export default function DrawerJobFiles({
                           <ConfirmationDialogAction
                             title={"Delete cache file"}
                             description={`This will delete the ${item.file_name} cache file permanently`}
-                            takeAction={() => deleteFile(item, "cache", index)}
+                            takeAction={handleConfirmAction(() =>
+                              deleteFile(item, "cache", index),
+                            )}
                             confirmText={"Delete cache file"}
                             confirmVariant={"destructive"}
                           >
@@ -397,7 +411,9 @@ export default function DrawerJobFiles({
                         <ConfirmationDialogAction
                           title={"Delete output file"}
                           description={`This will delete the ${item.file_name} output file permanently`}
-                          takeAction={() => deleteFile(item, "output", index)}
+                          takeAction={handleConfirmAction(() =>
+                            deleteFile(item, "output", index),
+                          )}
                           confirmText={"Delete output file"}
                           confirmVariant={"destructive"}
                         >

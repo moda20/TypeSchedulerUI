@@ -1,7 +1,7 @@
-import type { ReactNode } from "react"
+import { ReactNode, useEffect } from "react"
 import { forwardRef, useImperativeHandle } from "react"
 import { useMemo } from "react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Loader2 } from "lucide-react"
 
@@ -43,6 +43,7 @@ function ScrollableList<T>(
   const containerRef = useRef<HTMLDivElement>(null)
   useImperativeHandle(ref, () => ({
     removeItem,
+    resetList,
     node: containerRef.current as HTMLDivElement,
   }))
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
@@ -96,7 +97,7 @@ function ScrollableList<T>(
     }
 
     return () => observer.disconnect()
-  }, [loadMoreItems, loading, items])
+  }, [loadMoreItems, loading, items, loadMore])
 
   // Auto-focus first item when component mounts and no item is focused already
   useEffect(() => {
@@ -118,6 +119,11 @@ function ScrollableList<T>(
       setItems(originalList ?? [])
     }
   }, [originalList])
+
+  const resetList = useCallback(() => {
+    setItems([])
+    setCurrentFocusIndex(0)
+  }, [items, currentFocusIndex])
 
   const focusItem = (newIndex: number) => {
     setCurrentFocusIndex(newIndex)
@@ -227,21 +233,22 @@ function ScrollableList<T>(
         )
       })}
       {items.length === 0 && renderNoItems && renderNoItems()}
-
-      <div
-        ref={loaderRef}
-        className={cn(
-          "flex items-center justify-center py-8",
-          loading ? "opacity-100" : "opacity-0",
-        )}
-      >
-        {loading && (
+      {loading ? (
+        <div
+          ref={loaderRef}
+          className={cn(
+            "flex items-center justify-center py-8",
+            loading ? "opacity-100" : "opacity-0",
+          )}
+        >
           <div className="flex items-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin" />
             <span className="text-sm">Loading previous runs...</span>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        <div ref={loaderRef} className="h-1 p-12"></div>
+      )}
     </div>
   )
 }

@@ -12,7 +12,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { Edit2Icon, EllipsisVertical, LinkIcon, Settings } from "lucide-react"
+import {
+  Edit2Icon,
+  EllipsisVertical,
+  LinkIcon,
+  Settings,
+  Zap,
+} from "lucide-react"
 import ConfirmationDialogAction, {
   ConfirmationDialogActionType,
 } from "@/components/confirmationDialogAction"
@@ -79,6 +85,14 @@ export default function ProxyListActionDropdown({
               <span>Update config</span>
             </DropdownMenuItem>
           </ProxyConfigDialog>
+          <DropdownMenuItem
+            onSelect={() =>
+              columnsProps.proxyAction(ProxyActions.TEST, row, undefined)
+            }
+          >
+            <Zap />
+            <span>Test</span>
+          </DropdownMenuItem>
           <ProxyLinkDialog
             proxyDetails={row.original}
             JobsList={columnsProps.getAllJobs}

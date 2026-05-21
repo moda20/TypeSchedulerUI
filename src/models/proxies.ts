@@ -18,6 +18,7 @@ export enum ProxyActions {
   UPDATE,
   CREATE,
   LINK,
+  TEST,
 }
 
 export enum ProxyStatus {

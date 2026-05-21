@@ -2,7 +2,7 @@ import jobsService from "@/services/JobsService"
 import { DataTable } from "@/features/jobsTable/jobsTable"
 import type { jobsTableData } from "@/features/jobsTable/interfaces"
 import { getTableColumns, jobActions } from "@/features/jobsTable/interfaces"
-import type { MouseEventHandler } from "react"
+import { MouseEventHandler } from "react"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Spinner from "@/components/custom/LoadingOverlay"
 import type { ColumnDef, Row, SortingState, Table } from "@tanstack/react-table"
@@ -19,7 +19,6 @@ import {
   DownloadIcon,
 } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
-import { config } from "@/app/reducers/uiReducer"
 import { getConsumersCBox, takeAction } from "@/features/jobsTable/jobsUtils"
 import {
   jobsList,
@@ -38,16 +37,14 @@ import ConfirmationDialogAction, {
 import { cn } from "@/lib/utils"
 import { BatchImportDialog } from "@/components/custom/jobsTable/batchImportDialog"
 import { useInView } from "@/hooks/useInView"
+import { useJobs } from "@/hooks/useJobs"
 
 export const defaultSortingState = [{ id: "cronSetting", desc: true }]
 
 let lastSelectedID = 0
 export default function JobsPage() {
-  const [loading, setLoading] = useState(true)
-  const [fetchingData, setFetchingStatus] = useState(false)
   const [advancedFilters, setAdvancedFilters] = useState<any>()
   const [sorting, setSorting] = useState<SortingState>(defaultSortingState)
-  const savedConfig = useAppSelector(config)
   const JobsList = useAppSelector(jobsList)
   const dispatch = useAppDispatch()
   const avFilteringRef = useRef<AdvancedJobFilteringDialogHandle>(null)
@@ -59,80 +56,47 @@ export default function JobsPage() {
     [selectedRowIds],
   )
 
-  async function fetchTableData(inputSorting?: SortingState, avFilters?: any) {
-    setFetchingStatus(true)
-    setLoading(true)
-    const targetPromise =
-      (avFilters ?? advancedFilters)
-        ? jobsService.filterJobs(
-            null,
-            inputSorting ?? sorting,
-            avFilters ?? advancedFilters,
-          )
-        : jobsService.getAllJobs(inputSorting ?? sorting, undefined, 999999, 0)
-    return await targetPromise
-      .then(data => {
-        dispatch(setJobsList(data))
+  const { jobs, isJobFetching, forceJobRefresh } = useJobs({
+    sorting,
+    advancedFilters: advancedFilters,
+    offset: 0,
+    limit: 99999,
+  })
+
+  useEffect(() => {
+    dispatch(setJobsList(jobs ?? []))
+  }, [jobs])
+
+  const onAdvancedFilterChange = useCallback((value: any, reset?: boolean) => {
+    if (!value) {
+      avFilteringRef.current?.reset()
+    }
+    setAdvancedFilters(reset ? undefined : value)
+  }, [])
+
+  const onAdvancedExecutionSubmission = useCallback((value: any) => {
+    return jobsService
+      .queueJobExecution(value)
+      .then((data: any) => {
+        toast({
+          title: `Jobs queued`,
+          duration: 2000,
+        })
+        return data
       })
       .catch(err => {
-        dispatch(setJobsList([]))
-      })
-      .finally(() => {
-        setFetchingStatus(false)
-        setLoading(false)
-      })
-  }
-
-  const updateTableData = useCallback(
-    (sorting?: any, avFilters?: any) => {
-      return Promise.all([getRunningJobs(), fetchTableData(sorting, avFilters)])
-    },
-    [sorting],
-  )
-
-  const onAdvancedFilterChange = useCallback(
-    (value: any, reset?: boolean) => {
-      if (!value) {
-        avFilteringRef.current?.reset()
-      }
-      setAdvancedFilters(reset ? undefined : value)
-      updateTableData(undefined, reset ? undefined : value)
-    },
-    [updateTableData],
-  )
-
-  const onAdvancedExecutionSubmission = useCallback(
-    (value: any) => {
-      return jobsService
-        .queueJobExecution(value)
-        .then((data: any) => {
-          toast({
-            title: `Jobs queued`,
-            duration: 2000,
-          })
-          return data
+        toast({
+          title: err.message,
+          variant: "destructive",
         })
-        .catch(err => {
-          toast({
-            title: err.message,
-            variant: "destructive",
-          })
-        })
-    },
-    [updateTableData],
-  )
+      })
+  }, [])
 
   async function getRunningJobs() {
     return await jobsService.getRunningJobs().then((data: any) => {
       dispatch(setRunningJobsCount(data.count))
     })
   }
-  useEffect(() => {
-    if (!fetchingData) {
-      setLoading(true)
-      updateTableData()
-    }
-  }, [savedConfig.targetServer])
 
   const filterAndPaginationChange = useCallback(
     async ({ sorting: newSorting }: { sorting: any }) => {
@@ -142,8 +106,6 @@ export default function JobsPage() {
           ? newSorting
           : defaultSortingState
       setSorting(targetSorting)
-      setLoading(true)
-      await updateTableData(targetSorting, advancedFilters)
     },
     [advancedFilters],
   )
@@ -151,10 +113,10 @@ export default function JobsPage() {
   const tableEventsMemoized = useMemo(
     () => ({
       onPageChange: filterAndPaginationChange,
-      actionConfirmed: updateTableData,
+      actionConfirmed: forceJobRefresh,
       onRowSelectionChange: setSelectedRowIds,
     }),
-    [filterAndPaginationChange, updateTableData, selectedRowIds],
+    [filterAndPaginationChange, forceJobRefresh],
   )
 
   const takeJobsAction = useCallback(
@@ -164,7 +126,6 @@ export default function JobsPage() {
       data?: JobUpdateType | any,
       batchProcessIds?: Array<number>,
     ) => {
-      setLoading(true)
       await takeAction(row, action, data, batchProcessIds)?.catch(err => {
         console.error(err)
         toast({
@@ -172,10 +133,10 @@ export default function JobsPage() {
           variant: "destructive",
         })
       })
-      setLoading(false)
-      await updateTableData()
+
+      await forceJobRefresh()
     },
-    [sorting, selectedRowIds],
+    [forceJobRefresh],
   )
 
   const takeBatchJobsAction = useCallback(
@@ -192,7 +153,7 @@ export default function JobsPage() {
         if (dialogAction === ConfirmationDialogActionType.CANCEL) return
         return takeBatchJobsAction(action)
       },
-    [selectedRowIds, JobsList, takeJobsAction],
+    [takeBatchJobsAction],
   )
 
   const getRowRange = (
@@ -243,28 +204,27 @@ export default function JobsPage() {
     }
   }, [sorting])
 
-  const importJobs = useCallback(async (jobsList: any[]) => {
-    setLoading(true)
-    await jobsService
-      .importJobsFromJSON(jobsList)
-      .then(res => {
-        toast({
-          title: `${jobsList.length} Jobs imported successfully`,
-          duration: 2000,
+  const importJobs = useCallback(
+    async (jobsList: any[]) => {
+      await jobsService
+        .importJobsFromJSON(jobsList)
+        .then(res => {
+          toast({
+            title: `${jobsList.length} Jobs imported successfully`,
+            duration: 2000,
+          })
+          return forceJobRefresh()
         })
-        return updateTableData()
-      })
-      .catch(err => {
-        toast({
-          title: err.message,
-          duration: 2000,
-          variant: "destructive",
+        .catch(err => {
+          toast({
+            title: err.message,
+            duration: 2000,
+            variant: "destructive",
+          })
         })
-      })
-      .finally(() => {
-        setLoading(false)
-      })
-  }, [])
+    },
+    [forceJobRefresh],
+  )
 
   return (
     <div className="h-full">
@@ -400,7 +360,7 @@ export default function JobsPage() {
           </ButtonGroup>
         </div>
       </div>
-      <Spinner isLoading={loading} icon={LoaderPinwheelIcon}>
+      <Spinner isLoading={isJobFetching} icon={LoaderPinwheelIcon}>
         <DataTable
           columns={columns}
           data={JobsList}

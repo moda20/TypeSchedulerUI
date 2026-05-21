@@ -3,6 +3,9 @@ import jobsService from "@/services/JobsService"
 import { getEventsPerJob } from "@/services/components/eventsService"
 import type { DateRange } from "react-day-picker"
 import { PaginationState } from "@tanstack/react-table"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useAppSelector } from "@/app/hooks"
+import { config } from "@/app/reducers/uiReducer"
 
 export interface useJobsHookProps {
   limit?: number
@@ -13,6 +16,7 @@ export interface useJobsHookProps {
   jobEventsPagination?: PaginationState
   jobEventsSorting?: { id: string; desc: string }[]
   jobEventsRange?: DateRange
+  advancedFilters?: any
 }
 
 export function useJobs({
@@ -24,9 +28,11 @@ export function useJobs({
   jobEventsPagination,
   jobEventsSorting,
   jobEventsRange,
+  advancedFilters,
 }: useJobsHookProps) {
-  const [jobs, setJobs] = useState<any>([])
   const [loading, setLoading] = useState<boolean>(false)
+  const savedConfig = useAppSelector(config)
+  const queryClient = useQueryClient()
   const [eventsPerJobs, setEventsPerJobs] = useState<{
     events: any[]
     total: number
@@ -34,31 +40,52 @@ export function useJobs({
     events: [],
     total: 0,
   })
-  const [jobsItems, setJobsItems] = useState<any>([])
 
-  const getAllJobs = useCallback(() => {
-    setLoading(true)
-    return jobsService
-      .getAllJobs(sorting, status, limit, offset)
-      .then((data: any) => {
-        setJobs(data)
-        setJobsItems(
-          data.map((item: any) => {
-            return {
-              value: item.id?.toString(),
-              label: item.name,
-            }
-          }),
-        )
-        setLoading(false)
-      })
-  }, [limit, offset, status, sorting])
+  const fetchJobs = useCallback(
+    ({ limit, offset, status, sorting, advancedFilters }) => {
+      if (advancedFilters) {
+        return jobsService.filterJobs(status, sorting, advancedFilters)
+      }
+      return jobsService.getAllJobs(sorting, status, limit, offset)
+    },
+    [],
+  )
+
+  const { data: jobs, isFetching } = useQuery({
+    queryKey: [
+      "allJobs",
+      limit,
+      offset,
+      status,
+      sorting,
+      advancedFilters,
+      savedConfig.targetServer,
+    ],
+    queryFn: () =>
+      fetchJobs({ sorting, status, limit, offset, advancedFilters }),
+    placeholderData: [],
+    refetchOnReconnect: true,
+    retry: false,
+  })
+
+  const jobsItems = useMemo(() => {
+    return (
+      jobs?.map((item: any) => {
+        return {
+          value: item.id?.toString(),
+          label: item.name,
+        }
+      }) ?? []
+    )
+  }, [jobs])
 
   const jobsPerId = useMemo(() => {
-    return jobs.reduce((p: any, c: any) => {
-      p[c.id] = c
-      return p
-    }, {})
+    return (
+      jobs?.reduce((p: any, c: any) => {
+        p[c.id] = c
+        return p
+      }, {}) ?? {}
+    )
   }, [jobs])
 
   const getEventsPerJobs = useCallback(
@@ -104,8 +131,10 @@ export function useJobs({
     // emitting a pagination event that triggers an infinite rerender of the component
   ])
 
-  useEffect(() => {
-    getAllJobs()
+  const forceJobRefresh = useCallback(() => {
+    return queryClient.invalidateQueries({
+      queryKey: ["allJobs"],
+    })
   }, [])
 
   return {
@@ -113,6 +142,8 @@ export function useJobs({
     jobsItems,
     jobsPerId,
     loading,
+    isJobFetching: isFetching,
     eventsPerJobs,
+    forceJobRefresh,
   }
 }

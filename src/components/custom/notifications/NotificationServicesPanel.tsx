@@ -359,11 +359,11 @@ export default function NotificationServicesPanel() {
                         src={item.image}
                         alt="NoImg"
                       />
-                      <div className="flex flex-col gap-1 min-w-0">
-                        <div className="text-sm font-bold text-ellipsis overflow-hidden max-w-[200px] truncate">
+                      <div className="flex flex-col gap-1 min-w-0 max-w-[220px]">
+                        <div className="text-sm font-bold line-clamp-2">
                           {item.name}
                         </div>
-                        <div className="text-xs text-[--muted-foreground] text-ellipsis truncate min-w-0">
+                        <div className="text-xs text-[--muted-foreground] line-clamp-4 md:line-clamp-2 min-w-0">
                           {item.description}
                         </div>
                       </div>

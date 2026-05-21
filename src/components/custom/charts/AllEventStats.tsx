@@ -147,7 +147,7 @@ export function AllEventStats(props: AllEventStatsProps) {
 
   return (
     <Card className="border-border">
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-4 px-4 sm:flex-row text-foreground bg-background border-border rounded-t-xl">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-4 px-4 sm:flex-row text-foreground bg-background border-border rounded-t-xl sm:flex-wrap lg:flex-nowrap">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle>
             {activeTab === "table"
@@ -160,7 +160,7 @@ export function AllEventStats(props: AllEventStatsProps) {
               : "Showing recurrent stats for all emitted events"}
           </CardDescription>
         </div>
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-1 sm:flex-wrap lg:flex-nowrap">
           <ButtonGroup>
             <Button
               data-active={activeTab === "table"}
@@ -179,8 +179,8 @@ export function AllEventStats(props: AllEventStatsProps) {
               Chart
             </Button>
           </ButtonGroup>
-          <InputGroup>
-            <InputGroupAddon>Period (min)</InputGroupAddon>
+          <InputGroup className="w-auto">
+            <InputGroupAddon>Period</InputGroupAddon>
             <InputGroupAddon>
               <Select
                 value={periodUnit}

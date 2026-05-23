@@ -46,7 +46,7 @@ export interface ProxyConffigDialogProps {
 const ProxyUpdateSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(),
   proxy_ip: z.string(),
-  proxy_port: z.coerce.number().positive(),
+  proxy_port: z.coerce.number().positive().max(65535),
   description: z.string().optional(),
   status: z.union([z.nativeEnum(ProxyStatus), z.number()]).optional(),
   username: z.string().optional(),

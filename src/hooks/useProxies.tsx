@@ -108,7 +108,7 @@ export function useProxies(props?: UseProxyProps) {
 
   const testMutation = useMutation({
     mutationFn: systemService.testProxy,
-    onMutate: (id, data) => {
+    onMutate: (id, _context) => {
       toast({
         title: `Proxy with id = ${id} test started`,
         duration: 2000,

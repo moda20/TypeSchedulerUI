@@ -106,6 +106,29 @@ export function useProxies(props?: UseProxyProps) {
     },
   })
 
+  const testMutation = useMutation({
+    mutationFn: systemService.testProxy,
+    onMutate: (id, data) => {
+      toast({
+        title: `Proxy with id = ${id} test started`,
+        duration: 2000,
+      })
+    },
+    onSuccess: async (data, id) => {
+      toast({
+        title: `Proxy with id = ${id} test successful`,
+        duration: 2000,
+      })
+    },
+    onError: (error, variables) => {
+      toast({
+        title: "Error testing proxy, check system logs",
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
   const proxyActions = (
     action: ProxyActions,
     row?: Row<ProxyTableData>,
@@ -129,6 +152,8 @@ export function useProxies(props?: UseProxyProps) {
           id: proxyData!.id!,
           jobs: proxyData!.jobs!.map(e => Number(e)),
         })
+      case ProxyActions.TEST:
+        return testMutation.mutateAsync(Number(row?.original?.id))
       default:
         break
     }

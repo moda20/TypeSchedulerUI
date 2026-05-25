@@ -46,7 +46,7 @@ export interface ProxyConffigDialogProps {
 const ProxyUpdateSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(),
   proxy_ip: z.string(),
-  proxy_port: z.union([z.number(), z.string()]),
+  proxy_port: z.coerce.number().positive().max(65535),
   description: z.string().optional(),
   status: z.union([z.nativeEnum(ProxyStatus), z.number()]).optional(),
   username: z.string().optional(),
@@ -68,7 +68,7 @@ export function ProxyConfigDialog({
     resolver: zodResolver(ProxyUpdateSchema),
     defaultValues: {
       proxy_ip: proxyDetails?.proxy_ip ?? "",
-      proxy_port: proxyDetails?.proxy_port ?? "",
+      proxy_port: proxyDetails?.proxy_port,
       description: proxyDetails?.description ?? "",
       status: proxyDetails?.status,
       username: proxyDetails?.username,
@@ -236,7 +236,11 @@ export function ProxyConfigDialog({
                         <FormItem>
                           <FormLabel>Username</FormLabel>
                           <FormControl>
-                            <Input placeholder="Proxy username" {...field} />
+                            <Input
+                              placeholder="Proxy username"
+                              autoComplete="off"
+                              {...field}
+                            />
                           </FormControl>
                           <FormDescription></FormDescription>
                           <FormMessage />
@@ -254,6 +258,7 @@ export function ProxyConfigDialog({
                           <FormControl>
                             <PasswordInput
                               placeholder="Proxy username"
+                              autoComplete="new-password"
                               {...field}
                             />
                           </FormControl>

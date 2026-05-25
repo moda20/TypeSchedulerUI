@@ -71,6 +71,9 @@ const systemService = {
       },
     })
   },
+  testProxy(id: number): Promise<any> {
+    return axios.post("/proxies/testProxy", { id })
+  },
   getVersion(): Promise<any> {
     return axios.get("/status/version")
   },

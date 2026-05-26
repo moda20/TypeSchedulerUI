@@ -7,7 +7,7 @@ import SheetActionDialog from "@/components/sheet-action-dialog"
 import { config, setConfigItem } from "@/app/reducers/uiReducer"
 import { toast } from "@/hooks/use-toast"
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ConfirmationDialogAction, {
   ConfirmationDialogActionType,
 } from "@/components/confirmationDialogAction"
@@ -16,6 +16,9 @@ import { jobActions } from "@/features/jobsTable/interfaces"
 import { useHotkeys } from "react-hotkeys-hook"
 import HotKeyButton from "@/components/custom/HotKeyButton"
 import { verifyUserConnection } from "@/utils/authUtils"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
+import { ButtonGroup } from "@/components/ui/button-group"
+import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
 
 export default function DrawerMenuConfigurator() {
   useHotkeys(
@@ -63,6 +66,27 @@ export default function DrawerMenuConfigurator() {
     })
     sideBarTriggerRef.current.click()
   }
+  const hotKLeySaveTargetRef = useHotkeys<HTMLInputElement>(
+    ["meta+enter"],
+    () => {
+      return updateSavedTargets(targetServer)
+    },
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+  )
+
+  const handleTargetServerRemoval = useCallback(
+    (action: ConfirmationDialogActionType, target) => {
+      if (action === ConfirmationDialogActionType.CANCEL) {
+        return
+      }
+
+      return removeSavedTarget(target)
+    },
+    [savedConfig],
+  )
 
   return (
     <SheetActionDialog
@@ -90,6 +114,7 @@ export default function DrawerMenuConfigurator() {
               Current
             </Label>
             <Input
+              ref={hotKLeySaveTargetRef}
               name={"target"}
               placeholder="..."
               className="w-6/12"
@@ -121,7 +146,7 @@ export default function DrawerMenuConfigurator() {
             savedConfig.savedTargets.map((e, i) => (
               <div
                 className="flex items-center gap-4 justify-between w-full min-w-0 flex-1 overflow-hidden"
-                key={i}
+                key={e + i}
               >
                 <div
                   className={
@@ -153,19 +178,21 @@ export default function DrawerMenuConfigurator() {
                       removeSavedTarget(e)
                     }}
                     confirmVariant="destructive"
+                    autoFocus={true}
                   >
                     <Button variant={"destructive"} size={"icon"}>
                       <DeleteIcon />
                     </Button>
                   </ConfirmationDialogAction>
-                  <HotKeyButton
-                    hotKey={["ctrl+alt+" + (i + 1), "meta+alt+" + (i + 1)]}
+                  <ButtonWithTooltip
+                    tooltipContent={`(⌘⌥${i + 1})`}
+                    keyBinding={["ctrl+alt+" + (i + 1), "meta+alt+" + (i + 1)]}
                     variant={"default"}
                     size={"icon"}
                     onClick={() => setNewTargetServer(e)}
                   >
                     <PlayIcon />
-                  </HotKeyButton>
+                  </ButtonWithTooltip>
                 </div>
               </div>
             ))}

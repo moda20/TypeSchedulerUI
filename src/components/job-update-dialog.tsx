@@ -9,7 +9,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import type { jobsTableData } from "@/features/jobsTable/interfaces"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -33,6 +32,7 @@ import { useHotkeys } from "react-hotkeys-hook"
 import { useCallback, useMemo, useState } from "react"
 import MonacoFileViewer from "@/components/custom/MonacoFileViewer"
 import ExpandableCard from "@/components/custom/general/ExpandableCard"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
 export interface JobUpdateDialogProps {
   children: React.ReactNode
@@ -129,9 +129,7 @@ export function JobUpdateDialog({
               onSubmit={form.handleSubmit(
                 v => {
                   onChange(v)
-                  if (isCreateDialog) {
-                    setDialogState(false, resetState)
-                  }
+                  setDialogState(false, resetState)
                 },
                 err => {},
               )}
@@ -246,10 +244,15 @@ export function JobUpdateDialog({
               </ExpandableCard>
 
               <DialogFooter>
-                <Button variant={"default"} type="submit">
+                <ButtonWithStrCut
+                  keyBinding={"meta+enter"}
+                  variant={"default"}
+                  type="submit"
+                  useInForm={true}
+                >
                   {isCreateDialog ? <PlusIcon /> : <SaveIcon />}
                   {isCreateDialog ? "Add a new job" : "Save changes"}
-                </Button>
+                </ButtonWithStrCut>
               </DialogFooter>
             </form>
           </Form>

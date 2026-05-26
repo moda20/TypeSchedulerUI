@@ -14,6 +14,7 @@ import type * as React from "react"
 import type { VariantProps } from "class-variance-authority"
 import useDialogueManager from "@/hooks/useDialogManager"
 import { isValidElement, useCallback, useRef } from "react"
+import { useHotkeys } from "react-hotkeys-hook"
 
 export enum ConfirmationDialogActionType {
   CONFIRM,
@@ -40,6 +41,19 @@ export default function ConfirmationDialogAction(
 ) {
   const { isDialogOpen, setDialogState } = useDialogueManager()
   const cancelButtonRef = useRef<HTMLButtonElement>(null)
+
+  useHotkeys("meta+enter", () => {
+    if (!props.disableConfirm) {
+      handleConfirm()
+    }
+  })
+
+  const handleConfirm = useCallback(() => {
+    return props.takeAction(
+      ConfirmationDialogActionType.CONFIRM,
+      ...(props?.extraTakeActionArgs ?? []),
+    )
+  }, [props])
 
   const setDialogStateWithFocus = useCallback(
     (open: boolean, onOpenChange?: (open: boolean) => void) => {
@@ -68,7 +82,7 @@ export default function ConfirmationDialogAction(
           e.preventDefault()
           setDialogState(false, props.onOpenChange)
         }}
-        className={"text-foreground bg-background"}
+        className={"text-foreground bg-background border-border border-2"}
       >
         <AlertDialogHeader>
           <AlertDialogTitle>{props.title}</AlertDialogTitle>
@@ -97,18 +111,13 @@ export default function ConfirmationDialogAction(
           <AlertDialogAction
             ref={cancelButtonRef}
             title={props.confirmText ?? "Confirm"}
-            onClick={() =>
-              props.takeAction(
-                ConfirmationDialogActionType.CONFIRM,
-                ...(props?.extraTakeActionArgs ?? []),
-              )
-            }
+            onClick={handleConfirm}
             variant={props.confirmVariant}
             disabled={props.disableConfirm}
             autoFocus={true}
             tabIndex={0}
           >
-            {props.confirmText ?? "Confirm"}
+            {props.confirmText ?? "Confirm"} (⌘↩)
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

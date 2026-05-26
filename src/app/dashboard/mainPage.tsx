@@ -21,17 +21,9 @@ import {
   routes,
   currentRoute,
   RouteObject,
-  config,
-  setConfigItem,
 } from "@/app/reducers/uiReducer"
-import { useEffect, useRef, useState } from "react"
-import SheetActionDialog from "@/components/sheet-action-dialog"
-import { Button } from "@/components/ui/button"
-import { CogIcon, DeleteIcon, SaveIcon } from "lucide-react"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { PlayIcon } from "@radix-ui/react-icons"
-import { toast } from "@/hooks/use-toast"
+import { useEffect } from "react"
+
 import DrawerMenuConfigurator from "@/components/custom/DrawerMenuConfigurator"
 import SearchBar from "@/components/custom/SearchBar"
 import JobsStatusCount from "@/components/custom/dashboard/JobsStatusCount"

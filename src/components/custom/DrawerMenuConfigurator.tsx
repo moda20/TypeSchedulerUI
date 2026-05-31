@@ -171,12 +171,10 @@ export default function DrawerMenuConfigurator() {
                     }}
                     title={`Delete Target server : ${e}`}
                     description={
-                      "This action will delete the target server from your local browser storage. You can add it back again anytime"
+                      "This action will delete the target server from your local browser storage"
                     }
-                    takeAction={action => {
-                      if (action === ConfirmationDialogActionType.CANCEL) return
-                      removeSavedTarget(e)
-                    }}
+                    extraTakeActionArgs={[e]}
+                    takeAction={handleTargetServerRemoval}
                     confirmVariant="destructive"
                     autoFocus={true}
                   >

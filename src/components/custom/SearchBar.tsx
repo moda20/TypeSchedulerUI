@@ -42,18 +42,33 @@ export default function SearchBar({ trigger }: SearchBarProps) {
   const routesList = useAppSelector(routes)
   const activeRoute = useAppSelector(currentRoute)
 
+  const [searchKey, setSearchKey] = useState("")
+  const [jobsList, setJobsList] = useState<Array<jobsTableData>>([])
+  const [NavigationList, setNavigationsList] = useState<Array<RouteObject>>([])
+  const [listLoading, setListLoadingStatus] = useState(false)
+
   const convertedRoutesList = useMemo(() => {
-    return routesList
-      .map(e => {
-        return e.items.map(ie => {
-          return {
-            ...ie,
-            parent: e,
-          }
+    return (
+      routesList
+        .map(e => {
+          return e.items?.map(ie => {
+            return {
+              ...ie,
+              parent: e,
+            }
+          })
         })
-      })
-      .flat()
+        ?.flat() ?? []
+    )
   }, [routesList])
+
+  const fuse = useMemo(() => {
+    return new Fuse(convertedRoutesList, {
+      useTokenSearch: true,
+      keys: ["title"],
+      threshold: 0.35,
+    })
+  }, [convertedRoutesList])
 
   useHotkeys(
     ["ctrl+k", "meta+k"],
@@ -70,36 +85,32 @@ export default function SearchBar({ trigger }: SearchBarProps) {
     },
   )
 
-  const navigateToRoute = (route: RouteObject) => {
-    dispatch(
-      changeRoute([
-        route.parent!,
-        {
-          ...route,
-          parent: undefined,
-        },
-      ]),
-    )
-    navigate(route.url)
-    setDialogState(false, finalState => {
-      if (!finalState) {
-        resetState()
-      }
-    })
-  }
+  const resetState = useCallback(() => {
+    setSearchKey("")
+    setJobsList([])
+    setNavigationsList([])
+  }, [])
 
-  const [searchKey, setSearchKey] = useState("")
-  const [jobsList, setJobsList] = useState<Array<jobsTableData>>([])
-  const [NavigationList, setNavigationsList] = useState<Array<RouteObject>>([])
-  const [listLoading, setListLoadingStatus] = useState(false)
-
-  const fuse = useMemo(() => {
-    return new Fuse(convertedRoutesList, {
-      useTokenSearch: true,
-      keys: ["title"],
-      threshold: 0.35,
-    })
-  }, [convertedRoutesList])
+  const navigateToRoute = useCallback(
+    (route: RouteObject) => {
+      dispatch(
+        changeRoute([
+          route.parent!,
+          {
+            ...route,
+            parent: undefined,
+          },
+        ]),
+      )
+      navigate(route.url)
+      setDialogState(false, finalState => {
+        if (!finalState) {
+          resetState()
+        }
+      })
+    },
+    [dispatch, resetState],
+  )
 
   const searchForJobs = useCallback(
     async (inputSearchKey: string) => {
@@ -118,11 +129,10 @@ export default function SearchBar({ trigger }: SearchBarProps) {
     (inputSearchKey: any) => {
       if (inputSearchKey.length > 0 && inputSearchKey.startsWith("/")) {
         const result = fuse.search(inputSearchKey)
-        console.log(result)
         setNavigationsList(result.map(e => e.item))
       }
     },
-    [searchKey],
+    [fuse],
   )
 
   const executeSearch = useCallback(
@@ -132,12 +142,6 @@ export default function SearchBar({ trigger }: SearchBarProps) {
     },
     [searchForNavigation, searchForJobs],
   )
-
-  const resetState = useCallback(() => {
-    setSearchKey("")
-    setJobsList([])
-    setNavigationsList([])
-  }, [])
 
   const extendedTakeAction = useCallback(
     async (

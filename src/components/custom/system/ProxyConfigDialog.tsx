@@ -277,6 +277,7 @@ export function ProxyConfigDialog({
                 keyBinding="meta+enter"
                 variant={"default"}
                 type="submit"
+                useInForm={true}
               >
                 {isCreateDialog ? <PlusIcon /> : <SaveIcon />}
                 {isCreateDialog ? "Add a new Proxy" : "Save changes"}

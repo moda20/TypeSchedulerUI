@@ -357,7 +357,7 @@ export default function JobsPage() {
                   advancedFilters ? "rounded-l-none border-l-0" : "",
                 )}
               >
-                <FilterIcon /> Advanced filtering{" "}
+                <FilterIcon /> Advanced filtering
               </ButtonWithStrCut>
             </AdvancedJobFilteringDialog>
           </ButtonGroup>

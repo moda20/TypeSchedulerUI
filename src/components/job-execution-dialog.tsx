@@ -146,6 +146,7 @@ export function JobExecutionDialog({
                   keyBinding="meta+enter"
                   variant={"default"}
                   type="submit"
+                  useInForm={true}
                 >
                   <CogIcon />
                   Execute

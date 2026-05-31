@@ -43,7 +43,7 @@ export default function ConfirmationDialogAction(
   const cancelButtonRef = useRef<HTMLButtonElement>(null)
 
   useHotkeys("meta+enter", () => {
-    if (!props.disableConfirm) {
+    if (!props.disableConfirm && isDialogOpen) {
       handleConfirm()
     }
   })

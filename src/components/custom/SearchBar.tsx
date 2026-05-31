@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/command"
 import useDialogueManager from "@/hooks/useDialogManager"
 import { useHotkeys } from "react-hotkeys-hook"
-import type { ReactNode } from "react"
+import { ReactNode, useMemo } from "react"
 import { useCallback, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import jobsService from "@/services/JobsService"
@@ -20,6 +20,15 @@ import { defaultLogPeriod, jobActions } from "@/features/jobsTable/interfaces"
 import { getConsumersCBox, takeAction } from "@/features/jobsTable/jobsUtils"
 import { Clock, FileArchive, LoaderIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import Fuse from "fuse.js"
+import {
+  changeRoute,
+  currentRoute,
+  RouteObject,
+  routes,
+} from "@/app/reducers/uiReducer"
+import { useNavigate } from "react-router"
+import { useAppDispatch, useAppSelector } from "@/app/hooks"
 
 export interface SearchBarProps {
   trigger?: ReactNode
@@ -28,18 +37,69 @@ export interface SearchBarProps {
 export default function SearchBar({ trigger }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const { isDialogOpen, setDialogState } = useDialogueManager()
+  const navigate = useNavigate()
+  const dispatch = useAppDispatch()
+  const routesList = useAppSelector(routes)
+  const activeRoute = useAppSelector(currentRoute)
 
-  useHotkeys(["ctrl+k", "meta+k"], () => {
-    if (isDialogOpen) {
-      inputRef.current?.focus()
-    } else {
-      setDialogState(true)
-    }
-  })
+  const convertedRoutesList = useMemo(() => {
+    return routesList
+      .map(e => {
+        return e.items.map(ie => {
+          return {
+            ...ie,
+            parent: e,
+          }
+        })
+      })
+      .flat()
+  }, [routesList])
+
+  useHotkeys(
+    ["ctrl+k", "meta+k"],
+    () => {
+      if (isDialogOpen) {
+        inputRef.current?.focus()
+      } else {
+        setDialogState(true)
+      }
+    },
+    {
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    },
+  )
+
+  const navigateToRoute = (route: RouteObject) => {
+    dispatch(
+      changeRoute([
+        route.parent!,
+        {
+          ...route,
+          parent: undefined,
+        },
+      ]),
+    )
+    navigate(route.url)
+    setDialogState(false, finalState => {
+      if (!finalState) {
+        resetState()
+      }
+    })
+  }
 
   const [searchKey, setSearchKey] = useState("")
   const [jobsList, setJobsList] = useState<Array<jobsTableData>>([])
+  const [NavigationList, setNavigationsList] = useState<Array<RouteObject>>([])
   const [listLoading, setListLoadingStatus] = useState(false)
+
+  const fuse = useMemo(() => {
+    return new Fuse(convertedRoutesList, {
+      useTokenSearch: true,
+      keys: ["title"],
+      threshold: 0.35,
+    })
+  }, [convertedRoutesList])
 
   const searchForJobs = useCallback(
     async (inputSearchKey: string) => {
@@ -54,9 +114,29 @@ export default function SearchBar({ trigger }: SearchBarProps) {
     [searchKey],
   )
 
+  const searchForNavigation = useCallback(
+    (inputSearchKey: any) => {
+      if (inputSearchKey.length > 0 && inputSearchKey.startsWith("/")) {
+        const result = fuse.search(inputSearchKey)
+        console.log(result)
+        setNavigationsList(result.map(e => e.item))
+      }
+    },
+    [searchKey],
+  )
+
+  const executeSearch = useCallback(
+    (inputSearchKey: string) => {
+      searchForJobs(inputSearchKey)
+      searchForNavigation(inputSearchKey)
+    },
+    [searchForNavigation, searchForJobs],
+  )
+
   const resetState = useCallback(() => {
     setSearchKey("")
     setJobsList([])
+    setNavigationsList([])
   }, [])
 
   const extendedTakeAction = useCallback(
@@ -117,9 +197,33 @@ export default function SearchBar({ trigger }: SearchBarProps) {
           ref={inputRef}
           className="text-foreground"
           placeholder="Type a command or search..."
-          onValueChange={e => searchForJobs(e)}
+          onValueChange={e => executeSearch(e)}
         />
         <CommandList className="py-2">
+          {NavigationList?.length > 0 && (
+            <CommandGroup heading="Navigation">
+              {listLoading && <ItemSkeleton />}
+              {NavigationList?.map((item: any, index: number) => (
+                <CommandItem
+                  key={index}
+                  asChild
+                  className="rounded"
+                  onSelect={() => navigateToRoute(item)}
+                >
+                  <div className="flex flex-col !gap-0.5 !items-start justify-start w-100">
+                    <div className="flex items-center gap-2 w-100">
+                      Go to page: <span>{item.title}</span>{" "}
+                      {activeRoute?.[1]?.id === item.id && (
+                        <span className="text-muted-foreground text-xs w-100">
+                          {"<="} Current
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
           <CommandGroup heading="Jobs">
             <CommandEmpty className="text-foreground">
               No results found.

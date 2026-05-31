@@ -31,6 +31,7 @@ import { cn, parseCron } from "@/lib/utils"
 import useDialogueManager from "@/hooks/useDialogManager"
 import { useCallback, useMemo } from "react"
 import MonacoFileViewer from "@/components/custom/MonacoFileViewer"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
 export interface JobExecutionDialogProps {
   children: React.ReactNode
@@ -141,13 +142,18 @@ export function JobExecutionDialog({
               />
 
               <DialogFooter>
-                <Button variant={"default"} type="submit">
+                <ButtonWithStrCut
+                  keyBinding="meta+enter"
+                  variant={"default"}
+                  type="submit"
+                  useInForm={true}
+                >
                   <CogIcon />
-                  Execute{" "}
+                  Execute
                   {jobDetails!.name?.length > 40
                     ? `${jobDetails?.name?.slice(0, 40)}...`
-                    : jobDetails?.name}
-                </Button>
+                    : jobDetails?.name}{" "}
+                </ButtonWithStrCut>
               </DialogFooter>
             </form>
           </Form>

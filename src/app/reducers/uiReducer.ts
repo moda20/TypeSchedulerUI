@@ -15,6 +15,7 @@ export interface RouteObject {
   url: string
   active?: boolean
   items?: Array<RouteObject>
+  parent?: RouteObject
 }
 export interface UISliceState {
   toasts: Array<ToastObject>

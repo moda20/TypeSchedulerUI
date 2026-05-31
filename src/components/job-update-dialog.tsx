@@ -71,10 +71,6 @@ export function JobUpdateDialog({
   })
   const { isDialogOpen, setDialogState } = useDialogueManager()
 
-  useHotkeys(["ctrl+alt+n", "meta+alt+n"], () => {
-    setDialogState(true)
-  })
-
   const resetState = useCallback(
     (finalState: boolean) => {
       if (!finalState) {

@@ -244,12 +244,13 @@ export default function JobsPage() {
               takeJobsAction(null, jobActions.CREATE, jobData)
             }
           >
-            <Button
+            <ButtonWithStrCut
               variant="outline"
               className={"border-border rounded-r-none"}
+              keyBinding={["ctrl+alt+n", "meta+alt+n"]}
             >
               <PlusIcon /> New job
-            </Button>
+            </ButtonWithStrCut>
           </JobUpdateDialog>
           <BatchImportDialog onChange={importJobs}>
             <ButtonWithTooltip

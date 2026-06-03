@@ -14,17 +14,24 @@ const DropdownMenuItemExtended = React.forwardRef<
 >(({ className, inset, keyBinding, onAction, ...props }, ref) => {
   const newRef = useRef<HTMLDivElement>(null)
   useImperativeHandle(ref, () => newRef.current as HTMLInputElement)
-  useHotkeys(keyBinding ?? "", ev => {
-    if (props.disabled) {
-      return
-    }
-    if (onAction) {
-      onAction(ev)
-    }
-    if (newRef.current) {
-      newRef.current.dispatchEvent(new MouseEvent("click", { bubbles: true }))
-    }
-  })
+  useHotkeys(
+    keyBinding ?? "",
+    ev => {
+      if (props.disabled) {
+        return
+      }
+      if (onAction) {
+        onAction(ev)
+      }
+      if (newRef.current) {
+        newRef.current.dispatchEvent(new MouseEvent("click", { bubbles: true }))
+      }
+    },
+    {
+      enableOnFormTags: true,
+      enableOnContentEditable: true,
+    },
+  )
   return <DropdownMenuItem ref={newRef} {...props} />
 })
 DropdownMenuItemExtended.displayName = DropdownMenuItem.displayName

@@ -151,6 +151,9 @@ export default function SearchBar({ trigger }: SearchBarProps) {
       batchProcessIds?: number[],
     ) => {
       await takeAction(row, action, data, batchProcessIds)
+      if (isDialogOpen) {
+        inputRef.current?.focus()
+      }
       switch (action) {
         case jobActions.UPDATE:
         case jobActions.UNSCHEDULE:

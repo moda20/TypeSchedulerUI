@@ -11,13 +11,8 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import ConfirmationDialogAction, {
   ConfirmationDialogActionType,
 } from "@/components/confirmationDialogAction"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { jobActions } from "@/features/jobsTable/interfaces"
 import { useHotkeys } from "react-hotkeys-hook"
-import HotKeyButton from "@/components/custom/HotKeyButton"
 import { verifyUserConnection } from "@/utils/authUtils"
-import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
-import { ButtonGroup } from "@/components/ui/button-group"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
 
 export default function DrawerMenuConfigurator() {
@@ -185,6 +180,7 @@ export default function DrawerMenuConfigurator() {
                   <ButtonWithTooltip
                     tooltipContent={`(⌘⌥${i + 1})`}
                     keyBinding={["ctrl+alt+" + (i + 1), "meta+alt+" + (i + 1)]}
+                    hideKeyboardShortcut={true}
                     variant={"default"}
                     size={"icon"}
                     onClick={() => setNewTargetServer(e)}

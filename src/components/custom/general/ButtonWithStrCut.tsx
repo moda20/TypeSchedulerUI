@@ -9,6 +9,7 @@ export interface ButtonWithStrCutProps extends ButtonProps {
   keyBinding?: string | string[]
   onAction?: (arg0: KeyboardEvent) => void
   useInForm?: Options["enableOnFormTags"]
+  hideKeyboardShortcut?: boolean
 }
 
 const ButtonWithStrCut = React.forwardRef<
@@ -21,6 +22,7 @@ const ButtonWithStrCut = React.forwardRef<
       onAction,
       useInForm,
       children,
+      hideKeyboardShortcut,
       ...props
     }: ButtonWithStrCutProps,
     ref,
@@ -51,14 +53,19 @@ const ButtonWithStrCut = React.forwardRef<
       : keyBinding
     return (
       <Button ref={newRef} {...props}>
-        {children}{" "}
-        <span className="font-mono text-[12px]">
-          {keyBindingLabel
-            ? "(" +
-              formatForDisplay(keyBindingLabel, { separatorToken: "" }) +
-              ")"
-            : ""}
-        </span>
+        {children}
+        {!hideKeyboardShortcut && (
+          <>
+            {" "}
+            <span className="font-mono text-[12px]">
+              {keyBindingLabel
+                ? "(" +
+                  formatForDisplay(keyBindingLabel, { separatorToken: "" }) +
+                  ")"
+                : ""}
+            </span>
+          </>
+        )}
       </Button>
     )
   },

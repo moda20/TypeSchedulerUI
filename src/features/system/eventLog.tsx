@@ -82,6 +82,7 @@ export function EventLog() {
                 <LiveLogViewer
                   initialLogs={logs.map(e => e.fullMessage)}
                   newLogs={latestLogs.map(e => e.fullMessage)}
+                  wrapLines={false}
                 />
               ) : (
                 <Spinner

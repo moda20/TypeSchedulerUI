@@ -3,7 +3,7 @@ import useDialogueManager from "@/hooks/useDialogManager"
 import { Bell, FileText, Plus, Settings } from "lucide-react"
 import { useCallback } from "react"
 import { cn } from "@/lib/utils"
-import { ConfigViewType } from "@/features/system/configs"
+import { ConfigViewType } from "@/models/configs"
 
 interface ConfigAsideProps {
   activeView: ConfigViewType
@@ -67,6 +67,8 @@ export function ConfigAside({ activeView, onViewChange }: ConfigAsideProps) {
           tooltipDelay={0}
           aria-label={item.label}
           keyBinding={item.keyBinding}
+          hideKeyboardShortcut={true}
+          useInForm={true}
         >
           <item.icon className="h-5 w-5" />
           {activeView === item.view && (

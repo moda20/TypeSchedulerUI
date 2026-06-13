@@ -1,11 +1,4 @@
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import { Button } from "@/components/ui/button"
-import { Inbox, Circle, AtSign, Settings } from "lucide-react"
+import { Inbox, Circle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { NotificationType } from "@/models/notifications"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
@@ -65,6 +58,8 @@ export function NotificationAside({
           tooltipDelay={0}
           aria-label={item.label}
           keyBinding={item.keyBinding}
+          hideKeyboardShortcut={true}
+          useInForm={true}
         >
           <item.icon className="h-5 w-5" />
           {activeView === item.view && (

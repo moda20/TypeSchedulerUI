@@ -233,7 +233,7 @@ export default function ActionDropdown({
             triggerClassName="w-full"
           >
             <DropdownMenuItemExtended
-              keyBinding="u"
+              keyBinding="meta+u"
               onSelect={handleEventPrevention}
               disabled={!isTopOfTheStack}
             >
@@ -401,6 +401,7 @@ export default function ActionDropdown({
             }
             takeAction={handleConfirmationDeleteAction}
             autoFocus={true}
+            confirmVariant="destructive"
           >
             <DropdownMenuItem
               className={"bg-destructive"}

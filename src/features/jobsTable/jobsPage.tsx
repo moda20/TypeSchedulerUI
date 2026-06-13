@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils"
 import { BatchImportDialog } from "@/components/custom/jobsTable/batchImportDialog"
 import { useInView } from "@/hooks/useInView"
 import { useJobs } from "@/hooks/useJobs"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
 export const defaultSortingState = [{ id: "cronSetting", desc: true }]
 
@@ -243,12 +244,13 @@ export default function JobsPage() {
               takeJobsAction(null, jobActions.CREATE, jobData)
             }
           >
-            <Button
+            <ButtonWithStrCut
               variant="outline"
               className={"border-border rounded-r-none"}
+              keyBinding={["ctrl+alt+n", "meta+alt+n"]}
             >
               <PlusIcon /> New job
-            </Button>
+            </ButtonWithStrCut>
           </JobUpdateDialog>
           <BatchImportDialog onChange={importJobs}>
             <ButtonWithTooltip
@@ -347,7 +349,8 @@ export default function JobsPage() {
               inputJobIds={selectedRowIdsArray}
               ref={avFilteringRef}
             >
-              <Button
+              <ButtonWithStrCut
+                keyBinding="meta+shift+f"
                 variant="outline"
                 className={cn(
                   "border-border",
@@ -355,7 +358,7 @@ export default function JobsPage() {
                 )}
               >
                 <FilterIcon /> Advanced filtering
-              </Button>
+              </ButtonWithStrCut>
             </AdvancedJobFilteringDialog>
           </ButtonGroup>
         </div>

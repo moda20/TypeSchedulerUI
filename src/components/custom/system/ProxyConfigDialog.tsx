@@ -33,6 +33,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { PasswordInput } from "@/components/ui/password-input"
 import ManagedSelect from "@/components/custom/ManagedSelect"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
 export interface ProxyConffigDialogProps {
   children: React.ReactNode
@@ -272,10 +273,15 @@ export function ProxyConfigDialog({
               </Card>
             </div>
             <DialogFooter>
-              <Button variant={"default"} type="submit">
+              <ButtonWithStrCut
+                keyBinding="meta+enter"
+                variant={"default"}
+                type="submit"
+                useInForm={true}
+              >
                 {isCreateDialog ? <PlusIcon /> : <SaveIcon />}
                 {isCreateDialog ? "Add a new Proxy" : "Save changes"}
-              </Button>
+              </ButtonWithStrCut>
             </DialogFooter>
           </form>
         </Form>

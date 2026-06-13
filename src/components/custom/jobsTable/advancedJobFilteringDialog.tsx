@@ -40,6 +40,7 @@ import ScrollableList from "@/components/custom/general/ScrollableList"
 import JobItem from "@/components/custom/general/JobItem"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
 import { Separator } from "@/components/ui/separator"
+import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
 export interface AdvancedJobFilteringDialogProps {
   children: React.ReactNode
@@ -409,9 +410,14 @@ export const AdvancedJobFilteringDialog = forwardRef<
                     >
                       Reset
                     </Button>
-                    <Button type="submit" className="w-full">
+                    <ButtonWithStrCut
+                      keyBinding="meta+enter"
+                      type="submit"
+                      className="w-full"
+                      useInForm={true}
+                    >
                       <Search className="mr-2 h-4 w-4" /> Apply Filters
-                    </Button>
+                    </ButtonWithStrCut>
                     <Button
                       type="button"
                       className="w-4/12"

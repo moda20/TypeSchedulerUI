@@ -27,7 +27,7 @@ import { ComboBox } from "@/components/ui/combo-box"
 import { cn, parseCron } from "@/lib/utils"
 import useDialogueManager from "@/hooks/useDialogManager"
 import { useHotkeys } from "react-hotkeys-hook"
-import type { ProxyTableData } from "@/models/proxies"
+import { ProxyTableData, ProxyUpdateSchema } from "@/models/proxies"
 import { proxyProtocolOptions, ProxyStatus } from "@/models/proxies"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -35,7 +35,7 @@ import { PasswordInput } from "@/components/ui/password-input"
 import ManagedSelect from "@/components/custom/ManagedSelect"
 import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
 
-export interface ProxyConffigDialogProps {
+export interface ProxyConfigDialogProps {
   children: React.ReactNode
   isCreateDialog?: boolean
   proxyDetails?: ProxyTableData
@@ -44,27 +44,13 @@ export interface ProxyConffigDialogProps {
   triggerClassName?: string
 }
 
-const ProxyUpdateSchema = z.object({
-  id: z.union([z.number(), z.string()]).optional(),
-  proxy_ip: z.string(),
-  proxy_port: z.coerce.number().positive().max(65535),
-  description: z.string().optional(),
-  status: z.union([z.nativeEnum(ProxyStatus), z.number()]).optional(),
-  username: z.string().optional(),
-  password: z.string().optional(),
-  protocol: z.string().optional(),
-  jobs: z.array(z.number()).optional(),
-})
-
-export type ProxyConfigUpdateType = z.infer<typeof ProxyUpdateSchema>
-
 export function ProxyConfigDialog({
   children,
   isCreateDialog,
   proxyDetails,
   onChange,
   triggerClassName,
-}: ProxyConffigDialogProps) {
+}: ProxyConfigDialogProps) {
   const form = useForm<z.infer<typeof ProxyUpdateSchema>>({
     resolver: zodResolver(ProxyUpdateSchema),
     defaultValues: {

@@ -16,6 +16,7 @@ import { verifyUserConnection } from "@/utils/authUtils"
 import { ButtonWithTooltip } from "@/components/custom/general/ButtonWithTooltip"
 
 export default function DrawerMenuConfigurator() {
+  const [open, setOpen] = useState(false)
   useHotkeys(
     ["ctrl+l", "meta+l"],
     () => {
@@ -25,6 +26,7 @@ export default function DrawerMenuConfigurator() {
     },
     {
       preventDefault: true,
+      enabled: open,
     },
   )
 
@@ -69,6 +71,7 @@ export default function DrawerMenuConfigurator() {
     {
       enableOnFormTags: true,
       enableOnContentEditable: true,
+      enabled: open,
     },
   )
 
@@ -88,6 +91,7 @@ export default function DrawerMenuConfigurator() {
       side={"right"}
       title={"Configuration"}
       description={"Update server configuration"}
+      onOpenChange={setOpen}
       trigger={
         <Button
           variant={"outline"}

@@ -1,9 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import systemService from "@/services/SystemService"
-import { ProxyActions, type ProxyTableData } from "@/models/proxies"
+import {
+  JobProxyLinkUpdateType,
+  ProxyActions,
+  ProxyConfigUpdateType,
+  type ProxyTableData,
+} from "@/models/proxies"
 import { Row } from "@tanstack/react-table"
-import { ProxyConfigUpdateType } from "@/components/custom/system/ProxyConfigDialog"
 import { toast } from "@/hooks/use-toast"
+import { useCallback, useMemo } from "react"
 
 export interface UseProxyProps {
   filters?: {
@@ -27,6 +32,19 @@ export function useProxies(props?: UseProxyProps) {
     enabled: true,
     placeholderData: [],
   })
+
+  const proxyItems = useMemo(() => {
+    return data?.map((item: any) => {
+      return {
+        value: item.id?.toString(),
+        label: `${item.proxy_ip}:${item.proxy_port}`,
+      }
+    })
+  }, [data])
+
+  const jobProxies = useCallback((jobId: number) => {
+    return systemService.getJobProxies(jobId)
+  }, [])
 
   const createMutation = useMutation({
     mutationFn: systemService.addProxy,
@@ -106,6 +124,27 @@ export function useProxies(props?: UseProxyProps) {
     },
   })
 
+  const jobLinkMutation = useMutation({
+    mutationFn: (d: any) =>
+      systemService.addProxiesToASingleJob(d.id, d.proxies),
+    onSuccess: async (data, vars) => {
+      toast({
+        title: `${vars.proxies.length} proxies linked to a job`,
+        duration: 2000,
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ["proxies"],
+      })
+    },
+    onError: (error, variables) => {
+      toast({
+        title: "Error linking proxies to job",
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
   const testMutation = useMutation({
     mutationFn: systemService.testProxy,
     onMutate: (id, _context) => {
@@ -133,6 +172,7 @@ export function useProxies(props?: UseProxyProps) {
     action: ProxyActions,
     row?: Row<ProxyTableData>,
     proxyData?: ProxyConfigUpdateType,
+    jobProxyLinkData?: JobProxyLinkUpdateType,
   ) => {
     switch (action) {
       case ProxyActions.UPDATE:
@@ -152,6 +192,11 @@ export function useProxies(props?: UseProxyProps) {
           id: proxyData!.id!,
           jobs: proxyData!.jobs!.map(e => Number(e)),
         })
+      case ProxyActions.LINK_TO_JOBS:
+        return jobLinkMutation.mutateAsync({
+          id: Number(jobProxyLinkData!.id),
+          proxies: jobProxyLinkData!.proxies.map(e => Number(e)),
+        })
       case ProxyActions.TEST:
         return testMutation.mutateAsync(Number(row?.original?.id))
       default:
@@ -161,7 +206,9 @@ export function useProxies(props?: UseProxyProps) {
 
   return {
     proxies: data,
+    proxyItems,
     isLoading,
     proxyActions,
+    jobProxies,
   }
 }

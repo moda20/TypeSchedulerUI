@@ -13,6 +13,8 @@ import {
   useState,
   type ElementRef,
   useCallback,
+  useImperativeHandle,
+  useRef,
 } from "react"
 import { safeStringCast } from "@/utils/generalUtils"
 import { cn } from "@/lib/utils"
@@ -47,7 +49,8 @@ const ManagedSelect = forwardRef<
   const [parsedInputs, setParsedInputs] = useState<
     Array<ParsedManagedSelectInputValue>
   >([])
-
+  const innerRef = useRef<HTMLButtonElement>(null)
+  useImperativeHandle(ref, () => innerRef.current)
   const hotkeyRef = useHotkeys(
     ["enter"],
     () => {
@@ -57,6 +60,14 @@ const ManagedSelect = forwardRef<
       ignoreModifiers: false,
       preventDefault: true,
     },
+  )
+
+  const refCallback = useCallback(
+    (elem: HTMLButtonElement) => {
+      innerRef.current = elem
+      hotkeyRef(elem)
+    },
+    [hotkeyRef, innerRef],
   )
 
   useEffect(() => {
@@ -98,7 +109,7 @@ const ManagedSelect = forwardRef<
       disabled={props.disabled}
     >
       <SelectTrigger
-        ref={hotkeyRef}
+        ref={refCallback}
         onKeyDownCapture={e => {
           if (e.key === "Enter") {
             e.preventDefault()

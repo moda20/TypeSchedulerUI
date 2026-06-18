@@ -28,6 +28,8 @@ import {
   JobProxyLinkUpdateSchema,
   JobProxyLinkUpdateType,
   ProxyActions,
+  ProxyStrategyOptionEnum,
+  ProxyStrategyOptions,
 } from "@/models/proxies"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import ConfirmationDialogAction from "@/components/confirmationDialogAction"
@@ -35,13 +37,23 @@ import { MinusIcon } from "@radix-ui/react-icons"
 import type { jobsTableData } from "@/features/jobsTable/interfaces"
 import { useProxies } from "@/hooks/useProxies"
 import { useQuery } from "@tanstack/react-query"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import ButtonWithStrCut from "@/components/custom/general/ButtonWithStrCut"
+import ManagedSelect from "@/components/custom/ManagedSelect"
+import { Separator } from "@/components/ui/separator"
+
+import {
+  InputBase,
+  InputBaseAdornment,
+  InputBaseControl,
+  InputBaseInput,
+} from "@/components/ui/input-base"
 
 export interface ProxyLinkDialogProps {
   children: React.ReactNode
   jobDetails?: jobsTableData
   onChange?: (value: JobProxyLinkUpdateType) => void
+  onProxyStrategyChange?: (value: string, proxyId?: string) => void
   triggerClassName?: string
 }
 
@@ -49,9 +61,15 @@ export function JobProxyLinkDialog({
   children,
   jobDetails,
   onChange,
+  onProxyStrategyChange,
   triggerClassName,
 }: ProxyLinkDialogProps) {
   const { isDialogOpen, setDialogState } = useDialogueManager()
+  const strategySelectRef = useRef<HTMLButtonElement>(null)
+  const proxyConfig = useMemo(() => {
+    const jobParams = JSON.parse(jobDetails?.param ?? "{}")
+    return jobParams["proxyConfig"]
+  }, [jobDetails])
 
   const { proxyItems, jobProxies, proxyActions } = useProxies()
   const { data: jobProxyList, isLoading } = useQuery({
@@ -71,13 +89,47 @@ export function JobProxyLinkDialog({
     defaultValues: {
       id: jobDetails?.id ?? "",
       proxies: jobProxyList?.map(e => String(e.proxy_id)) ?? [],
+      strategy: proxyConfig?.proxyStrategy,
+      proxyId: proxyConfig?.targetProxyId,
     },
   })
+
+  const handlePickingStrategy = useCallback(
+    (newStrategy: ProxyStrategyOptionEnum) => {
+      form.setValue("strategy", newStrategy)
+      if (newStrategy !== ProxyStrategyOptionEnum.SPECIFIC) {
+        form.setValue("proxyId", "")
+      }
+      strategySelectRef.current?.blur()
+    },
+    [strategySelectRef.current],
+  )
   const handleSubmit = useCallback(
     async (inputValue: JobProxyLinkUpdateType) => {
-      proxyActions(ProxyActions.LINK_TO_JOBS, undefined, undefined, inputValue)
       onChange?.(inputValue)
-      setDialogState(false)
+      return proxyActions(
+        ProxyActions.LINK_TO_JOBS,
+        undefined,
+        undefined,
+        inputValue,
+      )
+        .then(() => {
+          if (
+            inputValue.strategy !== proxyConfig?.proxyStrategy ||
+            (inputValue.strategy === ProxyStrategyOptionEnum.SPECIFIC &&
+              inputValue.proxyId !== proxyConfig?.targetProxyId)
+          ) {
+            return onProxyStrategyChange?.(
+              inputValue.strategy,
+              inputValue.proxyId,
+            )
+          } else {
+            return Promise.resolve()
+          }
+        })
+        .then(() => {
+          setDialogState(false)
+        })
     },
     [onChange, isDialogOpen],
   )
@@ -101,17 +153,17 @@ export function JobProxyLinkDialog({
           setDialogState(false)
         }}
       >
+        <DialogTitle>Update proxy Links</DialogTitle>
         <DialogHeader>
-          <DialogTitle>Update proxy Links</DialogTitle>
           <DialogDescription>
             Proxies linked to {jobDetails?.name}
           </DialogDescription>
         </DialogHeader>
-        {isDialogOpen?.toString()}
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(
-              v => {
+              (v, event) => {
+                event.preventDefault()
                 handleSubmit(v)
               },
               err => {
@@ -120,7 +172,52 @@ export function JobProxyLinkDialog({
             )}
             className="space-y-8"
           >
-            <div>
+            <div className="space-y-4">
+              <div className="flex justify-between gap-2 items-center">
+                <div className="flex flex-col gap-1 w-8/12">
+                  <h4 className="text-lg font-bold">Pick strategy</h4>
+                  <p className="text-muted-foreground italic text-sm">
+                    Strategy for default proxy choice.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-1 justify-start">
+                  <FormField
+                    control={form.control}
+                    name="strategy"
+                    render={({ field }) => (
+                      <div>
+                        <ManagedSelect
+                          ref={strategySelectRef}
+                          exportOnlyValue={true}
+                          onChange={handlePickingStrategy}
+                          inputOptions={ProxyStrategyOptions}
+                          defaultValue={field.value}
+                        />
+                      </div>
+                    )}
+                  />
+
+                  {form.watch("strategy") ===
+                    ProxyStrategyOptionEnum.SPECIFIC && (
+                    <FormField
+                      control={form.control}
+                      name="proxyId"
+                      render={({ field }) => (
+                        <InputBase>
+                          <InputBaseAdornment>id</InputBaseAdornment>
+                          <InputBaseControl>
+                            <InputBaseInput
+                              defaultValue={field.value}
+                              onChange={e => field.onChange(e.target.value)}
+                            />
+                          </InputBaseControl>
+                        </InputBase>
+                      )}
+                    />
+                  )}
+                </div>
+              </div>
+              <Separator orientation="horizontal" className="my-2 h-1" />
               <Card className="border-transparent">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-0 pb-2 text-foreground bg-background border-transparent rounded-t-xl">
                   <CardTitle className="text-lg font-bold">
@@ -191,7 +288,9 @@ export function JobProxyLinkDialog({
             </div>
             <DialogFooter>
               <ButtonWithStrCut
+                disabled={form.formState.isSubmitting}
                 keyBinding={"meta+enter"}
+                useInForm={true}
                 variant={"default"}
                 type="submit"
               >

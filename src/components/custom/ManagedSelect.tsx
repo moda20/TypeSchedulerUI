@@ -7,9 +7,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import useDialogueManager from "@/hooks/useDialogManager"
-import { useEffect, useState } from "react"
+import {
+  forwardRef,
+  useEffect,
+  useState,
+  type ElementRef,
+  useCallback,
+} from "react"
 import { safeStringCast } from "@/utils/generalUtils"
 import { cn } from "@/lib/utils"
+import { useHotkeys } from "react-hotkeys-hook"
 
 export type ManagedSelectInputValue = {
   value?: string | boolean
@@ -32,11 +39,25 @@ export interface ManagedSelectProps {
   itemClassName?: string
 }
 
-export default function ManagedSelect(props: ManagedSelectProps) {
+const ManagedSelect = forwardRef<
+  ElementRef<typeof SelectTrigger>,
+  ManagedSelectProps
+>((props, ref) => {
   const { isDialogOpen, setDialogState } = useDialogueManager()
   const [parsedInputs, setParsedInputs] = useState<
     Array<ParsedManagedSelectInputValue>
   >([])
+
+  const hotkeyRef = useHotkeys(
+    ["enter"],
+    () => {
+      handleDialogState(!isDialogOpen)
+    },
+    {
+      ignoreModifiers: false,
+      preventDefault: true,
+    },
+  )
 
   useEffect(() => {
     setParsedInputs(
@@ -49,24 +70,43 @@ export default function ManagedSelect(props: ManagedSelectProps) {
     )
   }, [props.inputOptions])
 
+  const handleDialogState = useCallback(
+    (open: boolean) => {
+      if (open) {
+        if (!props.disabled) {
+          setDialogState(true)
+        }
+      } else {
+        setDialogState(false)
+      }
+    },
+    [props, setDialogState],
+  )
+
   return (
     <Select
       open={isDialogOpen}
-      onOpenChange={v => setDialogState(v)}
+      onOpenChange={v => handleDialogState(v)}
       onValueChange={v => {
         const targetValue = props.inputOptions.find(
           e => safeStringCast(e.value) === v,
         )
         props.onChange(props.exportOnlyValue ? targetValue?.value : targetValue)
-        setDialogState(false)
+        handleDialogState(false)
       }}
       defaultValue={safeStringCast(props.defaultValue)}
       disabled={props.disabled}
     >
       <SelectTrigger
+        ref={hotkeyRef}
+        onKeyDownCapture={e => {
+          if (e.key === "Enter") {
+            e.preventDefault()
+          }
+        }}
         onClick={v => {
           v.preventDefault()
-          setDialogState(true)
+          handleDialogState(true)
         }}
         className={cn(props.className)}
       >
@@ -91,4 +131,8 @@ export default function ManagedSelect(props: ManagedSelectProps) {
       </SelectContent>
     </Select>
   )
-}
+})
+
+ManagedSelect.displayName = "ManagedSelect"
+
+export default ManagedSelect

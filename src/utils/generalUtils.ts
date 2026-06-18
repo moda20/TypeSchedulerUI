@@ -1,6 +1,8 @@
 import c from "ansi-colors"
 import { useLocation } from "react-router"
 import React from "react"
+import { attempt, isError } from "lodash-es"
+
 c.enabled = true
 export const debounce = (fn: Function, ms = 300) => {
   let timeoutId: ReturnType<typeof setTimeout>
@@ -163,4 +165,9 @@ export function isReactFragment(variableToInspect) {
     return variableToInspect.type === React.Fragment
   }
   return variableToInspect === React.Fragment
+}
+
+export function safeJsonParse(input?: string) {
+  const result = attempt(() => JSON.parse(input))
+  return { error: isError(result), data: result }
 }

@@ -48,6 +48,20 @@ export const proxyProtocolOptions = [
   },
 ]
 
+export enum ProxyStrategyOptionEnum {
+  RANDOM = "RANDOM",
+  ROUND_ROBIN = "ROUND_ROBIN",
+  SPECIFIC = "SPECIFIC",
+  LEAST_USED = "LEAST_USED",
+}
+export const ProxyStrategyOptions = [
+  { value: ProxyStrategyOptionEnum.RANDOM, label: "Random" },
+  { value: ProxyStrategyOptionEnum.ROUND_ROBIN, label: "Round Robin" },
+  { value: ProxyStrategyOptionEnum.SPECIFIC, label: "Specific" },
+  { value: ProxyStrategyOptionEnum.LEAST_USED, label: "Least Used" },
+  { value: undefined, label: "First linked (default)" },
+]
+
 export const ProxyUpdateSchema = z.object({
   id: z.union([z.number(), z.string()]).optional(),
   proxy_ip: z.string(),
@@ -65,6 +79,8 @@ export type ProxyConfigUpdateType = z.infer<typeof ProxyUpdateSchema>
 export const JobProxyLinkUpdateSchema = z.object({
   id: z.union([z.number(), z.string()]),
   proxies: z.array(z.any()).optional(),
+  strategy: z.string().optional(),
+  proxyId: z.string().optional(),
 })
 
 export type JobProxyLinkUpdateType = z.infer<typeof JobProxyLinkUpdateSchema>

@@ -45,6 +45,9 @@ import DrawerFilePreview from "@/components/custom/DrawerFilePreview"
 import JobEventNotificationsDrawer from "@/components/custom/jobsTable/JobEvents/JobEventNotificationsDrawer"
 import { JobProxyLinkDialog } from "@/components/custom/system/JobProxyLinkDialog"
 import { cn } from "@/lib/utils"
+import { set, unset } from "lodash-es"
+import { safeJsonParse } from "@/utils/generalUtils"
+import { toast } from "@/hooks/use-toast"
 
 export interface ActionDropdownProps {
   columnsProps: tableColumnsProps
@@ -169,6 +172,29 @@ export default function ActionDropdown({
     if (!row.initialized && row.status === "STARTED") return
     return columnsProps.takeAction(row, jobActions.REFRESH)
   }, [row])
+
+  const updateProxyStrategy = useCallback(
+    (newStrategy?: string, specificProxyId?: string) => {
+      const { data: oldParam, error } = safeJsonParse(row.param || "{}")
+      if (error) {
+        toast({
+          title: "Failed to parse Job params. this is a JSON parsing issue.",
+          description: oldParam?.toString(),
+          variant: "destructive",
+        })
+      }
+      set(oldParam, "proxyConfig.proxyStrategy", newStrategy)
+      if (specificProxyId) {
+        set(oldParam, "proxyConfig.targetProxyId", specificProxyId)
+      } else {
+        unset(oldParam, "proxyConfig.targetProxyId")
+      }
+      return columnsProps.takeAction(row, jobActions.UPDATE, {
+        param: JSON.stringify(oldParam),
+      })
+    },
+    [row],
+  )
 
   const eventHandlers = useMemo(() => {
     try {
@@ -330,7 +356,10 @@ export default function ActionDropdown({
           />
         </DropdownMenuGroup>
         <DropdownMenuGroup>
-          <JobProxyLinkDialog jobDetails={row}>
+          <JobProxyLinkDialog
+            jobDetails={row}
+            onProxyStrategyChange={updateProxyStrategy}
+          >
             <DropdownMenuItemExtended
               keyBinding="meta+shift+p"
               onSelect={handleEventPrevention}

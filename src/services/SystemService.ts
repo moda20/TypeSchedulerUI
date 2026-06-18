@@ -1,6 +1,6 @@
 import axios from "@/lib/httpUtils"
 import type { ProxyTableData } from "@/models/proxies"
-import type { ProxyConfigUpdateType } from "@/components/custom/system/ProxyConfigDialog"
+import type { ProxyConfigUpdateType } from "@/models/proxies"
 import { downloadFile } from "@/utils/serviceUtils"
 
 const systemService = {

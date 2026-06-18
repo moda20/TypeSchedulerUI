@@ -102,7 +102,7 @@ export function JobProxyLinkDialog({
       }
       strategySelectRef.current?.blur()
     },
-    [strategySelectRef.current],
+    [],
   )
   const handleSubmit = useCallback(
     async (inputValue: JobProxyLinkUpdateType) => {
@@ -131,7 +131,7 @@ export function JobProxyLinkDialog({
           setDialogState(false)
         })
     },
-    [onChange, isDialogOpen],
+    [onChange, isDialogOpen, proxyConfig],
   )
 
   return (
@@ -207,7 +207,7 @@ export function JobProxyLinkDialog({
                           <InputBaseAdornment>id</InputBaseAdornment>
                           <InputBaseControl>
                             <InputBaseInput
-                              defaultValue={field.value}
+                              value={field.value}
                               onChange={e => field.onChange(e.target.value)}
                             />
                           </InputBaseControl>

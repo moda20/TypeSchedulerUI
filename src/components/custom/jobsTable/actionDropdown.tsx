@@ -46,6 +46,8 @@ import JobEventNotificationsDrawer from "@/components/custom/jobsTable/JobEvents
 import { JobProxyLinkDialog } from "@/components/custom/system/JobProxyLinkDialog"
 import { cn } from "@/lib/utils"
 import { set, unset } from "lodash-es"
+import { safeJsonParse } from "@/utils/generalUtils"
+import { toast } from "@/hooks/use-toast"
 
 export interface ActionDropdownProps {
   columnsProps: tableColumnsProps
@@ -172,8 +174,15 @@ export default function ActionDropdown({
   }, [row])
 
   const updateProxyStrategy = useCallback(
-    (newStrategy: string, specificProxyId?: string) => {
-      const oldParam = JSON.parse(row.param || "{}")
+    (newStrategy?: string, specificProxyId?: string) => {
+      const { data: oldParam, error } = safeJsonParse(row.param || "{}")
+      if (error) {
+        toast({
+          title: "Failed to parse Job params. this is a JSON parsing issue.",
+          description: oldParam?.toString(),
+          variant: "destructive",
+        })
+      }
       set(oldParam, "proxyConfig.proxyStrategy", newStrategy)
       if (specificProxyId) {
         set(oldParam, "proxyConfig.targetProxyId", specificProxyId)

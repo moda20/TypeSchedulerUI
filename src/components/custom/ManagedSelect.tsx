@@ -67,7 +67,7 @@ const ManagedSelect = forwardRef<
       innerRef.current = elem
       hotkeyRef(elem)
     },
-    [hotkeyRef, innerRef],
+    [hotkeyRef],
   )
 
   useEffect(() => {
@@ -91,7 +91,7 @@ const ManagedSelect = forwardRef<
         setDialogState(false)
       }
     },
-    [props, setDialogState],
+    [props.disabled, setDialogState],
   )
 
   return (

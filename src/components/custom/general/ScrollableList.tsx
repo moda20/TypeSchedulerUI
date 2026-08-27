@@ -136,6 +136,14 @@ function ScrollableList<T>(
     })
   }
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
+    // Skip keys from React Portal children (nested Sheet/Monaco) bubbling through the React tree.
+    if (
+      e.currentTarget &&
+      e.target &&
+      !e.currentTarget.contains(e.target as Node)
+    ) {
+      return
+    }
     let newIndex = index
     switch (e.key) {
       case "ArrowDown":
@@ -187,6 +195,15 @@ function ScrollableList<T>(
 
   const handleItemSelection = useCallback(
     (item: any, index: number, event: any) => {
+      // Skip events from React Portal children (nested Sheet/Monaco) — they bubble through the React tree but aren't DOM descendants of this row.
+      if (
+        event &&
+        event.currentTarget &&
+        event.target &&
+        !event.currentTarget.contains(event.target)
+      ) {
+        return
+      }
       setCurrentFocusIndex(index)
       itemRefs.current[index]?.focus()
       onItemClick?.(item, index, event)

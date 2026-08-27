@@ -17,6 +17,7 @@ import {
   EllipsisVertical,
   EyeIcon,
   FileSliders,
+  LinkIcon,
   LogsIcon,
   Settings,
   Trash2Icon,
@@ -42,6 +43,11 @@ import { JobExecutionDialog } from "@/components/job-execution-dialog"
 import DrawerJobEvents from "@/components/custom/DrawerJobEvents"
 import DrawerFilePreview from "@/components/custom/DrawerFilePreview"
 import JobEventNotificationsDrawer from "@/components/custom/jobsTable/JobEvents/JobEventNotificationsDrawer"
+import { JobProxyLinkDialog } from "@/components/custom/system/JobProxyLinkDialog"
+import { cn } from "@/lib/utils"
+import { set, unset } from "lodash-es"
+import { safeJsonParse } from "@/utils/generalUtils"
+import { toast } from "@/hooks/use-toast"
 
 export interface ActionDropdownProps {
   columnsProps: tableColumnsProps
@@ -167,6 +173,29 @@ export default function ActionDropdown({
     return columnsProps.takeAction(row, jobActions.REFRESH)
   }, [row])
 
+  const updateProxyStrategy = useCallback(
+    (newStrategy?: string, specificProxyId?: string) => {
+      const { data: oldParam, error } = safeJsonParse(row.param || "{}")
+      if (error) {
+        toast({
+          title: "Failed to parse Job params. this is a JSON parsing issue.",
+          description: oldParam?.toString(),
+          variant: "destructive",
+        })
+      }
+      set(oldParam, "proxyConfig.proxyStrategy", newStrategy)
+      if (specificProxyId) {
+        set(oldParam, "proxyConfig.targetProxyId", specificProxyId)
+      } else {
+        unset(oldParam, "proxyConfig.targetProxyId")
+      }
+      return columnsProps.takeAction(row, jobActions.UPDATE, {
+        param: JSON.stringify(oldParam),
+      })
+    },
+    [row],
+  )
+
   const eventHandlers = useMemo(() => {
     try {
       const params = JSON.parse(row.param || "{}")
@@ -194,7 +223,10 @@ export default function ActionDropdown({
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="bg-background w-auto"
+        tabIndex={!isTopOfTheStack ? -1 : 0}
+        className={cn("bg-background w-auto", {
+          "pointer-events-none": !isTopOfTheStack,
+        })}
         onEscapeKeyDown={handleEscapeDirectTrigger}
         {...dropdownContentProps}
       >
@@ -271,7 +303,7 @@ export default function ActionDropdown({
             >
               <DockIcon />
               <span>Custom run</span>
-              <DropdownMenuShortcut>⌘+⇧+E</DropdownMenuShortcut>
+              <DropdownMenuShortcut>⌘⇧E</DropdownMenuShortcut>
             </DropdownMenuItemExtended>
           </JobExecutionDialog>
           <DropdownMenuItemExtended
@@ -322,6 +354,22 @@ export default function ActionDropdown({
             onNotificationDelete={handleJobEventHandlerDelete}
             modal={modal}
           />
+        </DropdownMenuGroup>
+        <DropdownMenuGroup>
+          <JobProxyLinkDialog
+            jobDetails={row}
+            onProxyStrategyChange={updateProxyStrategy}
+          >
+            <DropdownMenuItemExtended
+              keyBinding="meta+shift+p"
+              onSelect={handleEventPrevention}
+              disabled={!isTopOfTheStack}
+            >
+              <LinkIcon />
+              <span>Linked Proxies</span>
+              <DropdownMenuShortcut>⌘⇧P</DropdownMenuShortcut>
+            </DropdownMenuItemExtended>
+          </JobProxyLinkDialog>
         </DropdownMenuGroup>
         <DropdownMenuGroup>
           <DrawerLokiLogs

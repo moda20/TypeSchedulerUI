@@ -1,6 +1,6 @@
 import axios from "@/lib/httpUtils"
 import type { ProxyTableData } from "@/models/proxies"
-import type { ProxyConfigUpdateType } from "@/components/custom/system/ProxyConfigDialog"
+import type { ProxyConfigUpdateType } from "@/models/proxies"
 import { downloadFile } from "@/utils/serviceUtils"
 
 const systemService = {
@@ -49,6 +49,13 @@ const systemService = {
       },
     })
   },
+  getJobProxies(jobId: number): Promise<any> {
+    return axios.get("/proxies/getJobProxies", {
+      params: {
+        jobId,
+      },
+    })
+  },
   updateProxy(id: number, proxyData: ProxyConfigUpdateType): Promise<any> {
     return axios.put("/proxies/updateProxy", {
       id,
@@ -62,6 +69,12 @@ const systemService = {
     return axios.post("/proxies/addProxyToJob", {
       id,
       job_ids: jobIds,
+    })
+  },
+  addProxiesToASingleJob(jobId: number, proxyIds: Array<number>): Promise<any> {
+    return axios.post("/proxies/addProxiesToJob", {
+      job_id: jobId,
+      proxy_ids: proxyIds,
     })
   },
   deleteProxy(id: number | string): Promise<any> {

@@ -29,6 +29,7 @@ import {
 } from "@/app/reducers/uiReducer"
 import { useNavigate } from "react-router"
 import { useAppDispatch, useAppSelector } from "@/app/hooks"
+import { cn } from "@/lib/utils"
 
 export interface SearchBarProps {
   trigger?: ReactNode
@@ -36,7 +37,7 @@ export interface SearchBarProps {
 
 export default function SearchBar({ trigger }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null)
-  const { isDialogOpen, setDialogState } = useDialogueManager()
+  const { isDialogOpen, setDialogState, isTopOfTheStack } = useDialogueManager()
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const routesList = useAppSelector(routes)
@@ -248,7 +249,12 @@ export default function SearchBar({ trigger }: SearchBarProps) {
                 inputGroup="commandActions"
                 modal={true}
               >
-                <CommandItem asChild className="rounded">
+                <CommandItem
+                  asChild
+                  className={cn("rounded", {
+                    "pointer-events-none": !isTopOfTheStack,
+                  })}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col gap-1">
                       <span>{job.name}</span>

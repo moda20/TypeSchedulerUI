@@ -15,9 +15,9 @@ const service = axios.create({
     onlyJSON: true,
   },
 } as CustomAxiosConfig)
-const loginService = service.create()
-service.defaults.withCredentials = true
 
+service.defaults.withCredentials = true
+const loginService = service.create()
 // Config
 const ENTRY_ROUTE = "/auth/login"
 const services = [service, loginService]

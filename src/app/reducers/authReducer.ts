@@ -44,7 +44,11 @@ export const AuthenticationSlice = createAppSlice({
       },
     ),
     disconnect: create.reducer((state: AuthenticationSliceState) => {
-      Cookies.remove("access_token")
+      if (!cookieStore) {
+        Cookies.remove("access_token")
+      } else {
+        cookieStore.delete("access_token")
+      }
       state.authToken = undefined
       state.user = undefined
       state.connectionStatus = ConnectionStatus.DISCONNECTED

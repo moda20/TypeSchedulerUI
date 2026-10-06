@@ -15,13 +15,15 @@ const service = axios.create({
     onlyJSON: true,
   },
 } as CustomAxiosConfig)
+const loginService = service.create()
 service.defaults.withCredentials = true
 
 // Config
 const ENTRY_ROUTE = "/auth/login"
-const services = [service]
+const services = [service, loginService]
+const baseServices = [service]
 // API Request interceptor
-services.forEach(s =>
+baseServices.forEach(s =>
   s.interceptors.request.use(config => {
     const targetUrl = store.getState().ui.config.targetServer
     if (targetUrl) {
@@ -99,3 +101,4 @@ services.forEach(s =>
 )
 
 export default service
+export { loginService }

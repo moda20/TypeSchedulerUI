@@ -100,8 +100,8 @@ export function LoginForm({
 
   const ValidateHost = useCallback(
     (inputHost?: string) => {
-      const targetHost = inputHost ?? newHost
-      if (z.url().safeParse(targetHost)) {
+      const targetHost = ServerInputRef.current?.value ?? inputHost ?? newHost
+      if (z.url().safeParse(targetHost).success) {
         testServerConnection(targetHost)
           .then(() => {
             setValidHost(true)
@@ -116,6 +116,13 @@ export function LoginForm({
       }
     },
     [newHost],
+  )
+
+  const isASavedHost = useCallback(
+    (inputHost?: string) => {
+      return targets.some(e => e === inputHost)
+    },
+    [targets],
   )
 
   const resetInput = useCallback(() => {
@@ -161,6 +168,7 @@ export function LoginForm({
                   // @ts-ignore
                   setNewHost(e.target.value)
                   setValidityMessage(undefined)
+                  setValidHost(undefined)
                 }}
               />
               <InputGroupAddon>
@@ -214,7 +222,7 @@ export function LoginForm({
                   </ButtonWithTooltip>
                 </InputGroupAddon>
               )}
-              {validHost === true && (
+              {validHost === true && newHost && !isASavedHost(newHost) && (
                 <InputGroupAddon align="inline-end">
                   <InputGroupButton onClick={() => updateSavedTarget(newHost)}>
                     <SaveIcon />

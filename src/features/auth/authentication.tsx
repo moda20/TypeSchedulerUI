@@ -100,7 +100,7 @@ export default function Authentication({
     },
     onError: (error, variables) => {
       toast({
-        title: `Error logging in to ${variables.host}`,
+        title: `Error registering with to ${variables.host}`,
         description: error.message,
         variant: "destructive",
       })
@@ -129,8 +129,8 @@ export default function Authentication({
         >
           <LoginForm
             className="w-full"
-            onLoginSubmit={v => loginMutation.mutateAsync(v)}
-            onRegisterSubmit={v => registerMutation.mutateAsync(v)}
+            onLoginSubmit={v => loginMutation.mutate(v)}
+            onRegisterSubmit={v => registerMutation.mutate(v)}
           />
         </Spinner>
       </DialogContent>

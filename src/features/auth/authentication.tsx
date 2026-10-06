@@ -16,6 +16,11 @@ import type {
   SavedUserData,
 } from "@/models/auth"
 import { verifyUserConnection } from "@/utils/authUtils"
+import { useServers } from "@/hooks/use-servers"
+import { useMutation } from "@tanstack/react-query"
+import systemService from "@/services/SystemService"
+import { toast } from "@/hooks/use-toast"
+import Spinner from "@/components/custom/LoadingOverlay"
 
 export interface AuthenticationProps extends React.ComponentProps<"div"> {}
 
@@ -25,16 +30,12 @@ export default function Authentication({
 }: AuthenticationProps) {
   const dispatch = useAppDispatch()
   const { isDialogOpen, setDialogState } = useDialogueManager()
+  const { setNewTargetServer } = useServers()
   const targetConnectionStatus = useAppSelector(connectionStatus)
 
   const isConnected = targetConnectionStatus === ConnectionStatus.CONNECTED
   const connectionInProgress =
     targetConnectionStatus === ConnectionStatus.INPROGRESS
-
-  const checkLoginData = useCallback(async () => {
-    const data = await authService.me()
-    dispatch(setUser(data as SavedUserData))
-  }, [dispatch])
 
   useEffect(() => {
     if (isConnected) {
@@ -48,24 +49,63 @@ export default function Authentication({
 
   const loginAction = useCallback(
     async (data: LoginFormData) => {
-      await authService.login(data).then((resData: SavedUserData) => {
-        dispatch(setUser(resData))
-      })
-
-      verifyUserConnection()
+      return await authService
+        .login(data)
+        .then((resData: { data: SavedUserData }) => {
+          dispatch(setUser(resData.data))
+          setNewTargetServer(data.host)
+          return resData.data
+        })
     },
     [dispatch],
   )
 
   const registerAction = useCallback(
     async (data: RegisterFormData) => {
-      await authService.register(data).then((resData: SavedUserData) => {
-        dispatch(setUser(resData))
-      })
-      verifyUserConnection()
+      return await authService
+        .register(data)
+        .then((resData: { data: SavedUserData }) => {
+          dispatch(setUser(resData.data))
+          setNewTargetServer(data.host)
+          return resData.data
+        })
     },
     [dispatch],
   )
+
+  const loginMutation = useMutation({
+    mutationFn: loginAction,
+    onSuccess: async (data, variables) => {
+      toast({
+        title: `Logged in as ${data.username}`,
+        duration: 2000,
+      })
+    },
+    onError: (error, variables) => {
+      toast({
+        title: `Error logging in to ${variables.host}`,
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
+
+  const registerMutation = useMutation({
+    mutationFn: registerAction,
+    onSuccess: async (data, variables) => {
+      toast({
+        title: `Logged in as ${data.username}`,
+        duration: 2000,
+      })
+    },
+    onError: (error, variables) => {
+      toast({
+        title: `Error logging in to ${variables.host}`,
+        description: error.message,
+        variant: "destructive",
+      })
+    },
+  })
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={() => {}}>
@@ -81,12 +121,18 @@ export default function Authentication({
       </DialogTrigger>
       <DialogContent
         hideCloseButton={true}
-        className="sm:max-w-[50%] xxl:max-w-[40%] text-foreground bg-background border-border rounded-t-xl"
+        className="sm:max-w-[300px] md:max-w-[40%] lg:max-w-[450px] xxl:max-w-[450px] text-foreground bg-background border-border"
       >
-        <LoginForm
-          onLoginSubmit={v => loginAction(v)}
-          onRegisterSubmit={v => registerAction(v)}
-        />
+        <Spinner
+          className="w-full"
+          isLoading={loginMutation.isPending || registerMutation.isPending}
+        >
+          <LoginForm
+            className="w-full"
+            onLoginSubmit={v => loginMutation.mutateAsync(v)}
+            onRegisterSubmit={v => registerMutation.mutateAsync(v)}
+          />
+        </Spinner>
       </DialogContent>
     </Dialog>
   )

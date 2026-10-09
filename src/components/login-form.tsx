@@ -177,7 +177,7 @@ export function LoginForm({
                     <InputGroupButton>Saved hosts</InputGroupButton>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
-                    className="w-40 bg-background text-foreground border-border"
+                    className="w-full bg-background text-foreground border-border"
                     align="start"
                   >
                     <DropdownMenuGroup>

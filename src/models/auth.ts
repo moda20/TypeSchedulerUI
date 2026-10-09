@@ -1,11 +1,13 @@
 export interface LoginFormData {
   email: string
   password: string
+  host: string
 }
 export interface RegisterFormData {
   email: string
   password: string
   username: string
+  host: string
 }
 
 export interface SavedUserData {

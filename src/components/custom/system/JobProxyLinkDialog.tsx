@@ -85,6 +85,7 @@ export function JobProxyLinkDialog({
       strategy: proxyConfig?.proxyStrategy,
       proxyId: proxyConfig?.targetProxyId,
     },
+    disabled: isLoading,
   })
 
   const handlePickingStrategy = useCallback(

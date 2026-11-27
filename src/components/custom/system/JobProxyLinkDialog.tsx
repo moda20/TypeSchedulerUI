@@ -76,22 +76,16 @@ export function JobProxyLinkDialog({
     queryKey: ["proxies", jobDetails?.id],
     queryFn: () => jobProxies(Number(jobDetails?.id)),
     placeholderData: [],
-    select: data => {
-      form.setValue(
-        "proxies",
-        data.map(e => String(e.proxy_id)),
-      )
-      return data
-    },
   })
   const form = useForm<z.infer<typeof JobProxyLinkUpdateSchema>>({
     resolver: zodResolver(JobProxyLinkUpdateSchema),
-    defaultValues: {
+    values: {
       id: jobDetails?.id ?? "",
       proxies: jobProxyList?.map(e => String(e.proxy_id)) ?? [],
       strategy: proxyConfig?.proxyStrategy,
       proxyId: proxyConfig?.targetProxyId,
     },
+    disabled: isLoading,
   })
 
   const handlePickingStrategy = useCallback(

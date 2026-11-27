@@ -43,7 +43,7 @@ export default function JobEventNotificationsDrawer({
         serviceIds.length,
         serviceIds,
       ),
-    placeholderData: { data: [] },
+    placeholderData: { data: useMemo(() => [], []) },
     select: (d: any) => {
       const servicesMap = new Map<number, NotificationService>()
       d.data.forEach((service: NotificationService, index: number) => {
